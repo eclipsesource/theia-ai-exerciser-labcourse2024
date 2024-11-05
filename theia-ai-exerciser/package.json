@@ -24,7 +24,7 @@
   },
   "theiaExtensions": [
     {
-      "frontend": "lib/browser/theia-ai-exerciser-frontend-module"
+      "frontend": "lib/browser/coding-exercise-agent-frontend-module"
     }
   ]
 }
