@@ -21,20 +21,23 @@ export class FileCreateFunction implements ToolProvider {
             parameters: {
                 type: 'object',
                 properties: {
-                    file: {
+                    fileName: {
                         type: 'string',
-                        description: 'The path of the file to create or overwrite',
+                        description: 'The name of the file to create or overwrite',
+                    },
+                    filePath: {
+                        type: 'string',
+                        description: 'The directory path where the file should be created',
                     },
                     content: {
                         type: 'string',
                         description: 'The content to write to the file',
                     }
                 },
-               
             },
             handler: (arg_string: string) => {
-                const { file, content } = this.parseArgs(arg_string);
-                return this.createFile(file, content);
+                const { fileName, filePath, content } = this.parseArgs(arg_string);
+                return this.createFile(fileName, filePath, content);
             }
         };
     }
@@ -45,16 +48,21 @@ export class FileCreateFunction implements ToolProvider {
     @inject(FileService)
     protected readonly fileService: FileService;
 
-    private parseArgs(arg_string: string): { file: string; content: string } {
+    private parseArgs(arg_string: string): { fileName: string; filePath: string; content: string } {
         return JSON.parse(arg_string);
     }
 
-    private async createFile(file: string, content: string): Promise<string> {
-        const uri = new URI(file);
-        await this.fileService.write(uri, content);
-        return `File created or updated at ${file}`;
+    private async createFile(fileName: string, filePath: string, content: string): Promise<string> {
+        // Combine filePath and fileName to create the full URI for the file
+        const directoryUri = new URI(filePath);
+        const fullUri = directoryUri.resolve(fileName);
+
+        // Write the content to the file, creating or overwriting it
+        await this.fileService.write(fullUri, content);
+        return `File created or updated at ${fullUri.toString()}`;
     }
 }
+
 
 @injectable()
 export class FileContentFunction implements ToolProvider {
