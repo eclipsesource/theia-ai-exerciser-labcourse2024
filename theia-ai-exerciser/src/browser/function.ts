@@ -25,9 +25,9 @@ export class FileCreateFunction implements ToolProvider {
                         type: 'string',
                         description: 'The name of the file to create or overwrite',
                     },
-                    filePath: {
+                    fileDir: {
                         type: 'string',
-                        description: 'The directory path where the file should be created',
+                        description: 'The directory where the file should be created',
                     },
                     content: {
                         type: 'string',
@@ -36,8 +36,8 @@ export class FileCreateFunction implements ToolProvider {
                 },
             },
             handler: (arg_string: string) => {
-                const { fileName, filePath, content } = this.parseArgs(arg_string);
-                return this.createFile(fileName, filePath, content);
+                const { fileName, fileDir, content } = this.parseArgs(arg_string);
+                return this.createFile(fileName, fileDir, content);
             }
         };
     }
@@ -48,18 +48,30 @@ export class FileCreateFunction implements ToolProvider {
     @inject(FileService)
     protected readonly fileService: FileService;
 
-    private parseArgs(arg_string: string): { fileName: string; filePath: string; content: string } {
+    private parseArgs(arg_string: string): { fileName: string; fileDir: string; content: string } {
         return JSON.parse(arg_string);
     }
 
-    private async createFile(fileName: string, filePath: string, content: string): Promise<string> {
-        // Combine filePath and fileName to create the full URI for the file
-        const directoryUri = new URI(filePath);
-        const fullUri = directoryUri.resolve(fileName);
+    private async createFile(fileName: string, fileDir: string, content: string): Promise<string> {
 
-        // Write the content to the file, creating or overwriting it
-        await this.fileService.write(fullUri, content);
-        return `File created or updated at ${fullUri.toString()}`;
+        const wsRoots = await this.workspaceService.roots;
+        if(!fileDir){
+            if(wsRoots.length !== 0) {
+                const rootUri = wsRoots[0].resource;
+                const fileUri = rootUri.resolve(fileName);
+                await this.fileService.write(fileUri, content);
+                return `File created at ${fileUri.toString()}`;
+            }else{
+                return `No workspace found to create file`;
+            }
+        }else{
+
+            const fileDirUri = new URI(fileDir);
+            const fileUri = fileDirUri.resolve(fileName);
+            await this.fileService.write(fileUri, content);
+            return `File created or updated at ${fileUri.toString()}`;
+        }
+        
     }
 }
 
@@ -105,6 +117,7 @@ export class FileContentFunction implements ToolProvider {
         const fileContent = await this.fileService.read(uri);
         return fileContent.value;
     }
+
 }
 
 /**
