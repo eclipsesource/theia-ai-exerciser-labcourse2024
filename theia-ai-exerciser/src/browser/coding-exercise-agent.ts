@@ -17,7 +17,7 @@
 import { AbstractStreamParsingChatAgent, ChatAgent, SystemMessageDescription } from '@theia/ai-chat/lib/common';
 import { AgentSpecificVariables, PromptTemplate, ToolInvocationRegistry } from '@theia/ai-core';
 import { inject, injectable } from '@theia/core/shared/inversify';
-import { codingExerciseTemplate } from './template';
+import {codingExerciseTemplate} from "./template";
 import { FILE_CONTENT_FUNCTION_ID, GET_WORKSPACE_FILE_LIST_FUNCTION_ID, CREATE_FILE_FUNCTION_ID } from './function-name';
 
 @injectable()
@@ -37,7 +37,7 @@ export class CodingExerciseAgent extends AbstractStreamParsingChatAgent implemen
             purpose: 'chat',
             identifier: 'openai/gpt-4o',
         }], 'chat');
-        
+
         // Set the agent name and description for coding exercises
         this.name = 'CodingExercise';
         this.description = 'This agent assists with coding exercises by providing code snippets, explanations, and guidance. \
@@ -47,7 +47,7 @@ export class CodingExerciseAgent extends AbstractStreamParsingChatAgent implemen
         this.promptTemplates = [codingExerciseTemplate];
         this.variables = [];
         this.agentSpecificVariables = [];
-        
+
         // Register functions relevant for coding exercises, including file access and code execution
         this.functions = [GET_WORKSPACE_FILE_LIST_FUNCTION_ID, FILE_CONTENT_FUNCTION_ID, CREATE_FILE_FUNCTION_ID];
     }
