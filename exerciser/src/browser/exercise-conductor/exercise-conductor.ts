@@ -17,11 +17,11 @@
 import { AbstractStreamParsingChatAgent, ChatAgent, SystemMessageDescription } from '@theia/ai-chat/lib/common';
 import { AgentSpecificVariables, PromptTemplate, ToolInvocationRegistry } from '@theia/ai-core';
 import { inject, injectable } from '@theia/core/shared/inversify';
-import {codingExerciseTemplate} from "./template";
-import { FILE_CONTENT_FUNCTION_ID, GET_WORKSPACE_FILE_LIST_FUNCTION_ID, CREATE_FILE_FUNCTION_ID } from './function-name';
+import { exerciseConductorTemplate } from "./template";
+import { CREATE_FILE_FUNCTION_ID, GET_FILE_CONTENT_FUNCTION_ID, GET_WORKSPACE_FILES_FUNCTION_ID } from './../utils/tool-functions/function-names';
 
 @injectable()
-export class CodingExerciseAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
+export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
     name: string;
     description: string;
     promptTemplates: PromptTemplate[];
@@ -33,27 +33,26 @@ export class CodingExerciseAgent extends AbstractStreamParsingChatAgent implemen
     protected toolInvocationRegistry: ToolInvocationRegistry;
 
     constructor() {
-        super('CodingExercise', [{
+        super('ExerciseConductor', [{
             purpose: 'chat',
             identifier: 'openai/gpt-4o',
         }], 'chat');
 
-        // Set the agent name and description for coding exercises
-        this.name = 'CodingExercise';
+        this.name = 'ExerciseConductor';
         this.description = 'This agent assists with coding exercises by providing code snippets, explanations, and guidance. \
     It can execute code snippets, evaluate results, and answer questions related to coding challenges.';
 
         // Define the prompt template and variables specific to coding exercises
-        this.promptTemplates = [codingExerciseTemplate];
+        this.promptTemplates = [exerciseConductorTemplate];
         this.variables = [];
         this.agentSpecificVariables = [];
 
         // Register functions relevant for coding exercises, including file access and code execution
-        this.functions = [GET_WORKSPACE_FILE_LIST_FUNCTION_ID, FILE_CONTENT_FUNCTION_ID, CREATE_FILE_FUNCTION_ID];
+        this.functions = [CREATE_FILE_FUNCTION_ID, GET_FILE_CONTENT_FUNCTION_ID, GET_WORKSPACE_FILES_FUNCTION_ID];
     }
 
     protected override async getSystemMessageDescription(): Promise<SystemMessageDescription | undefined> {
-        const resolvedPrompt = await this.promptService.getPrompt(codingExerciseTemplate.id);
+        const resolvedPrompt = await this.promptService.getPrompt(exerciseConductorTemplate.id);
         return resolvedPrompt ? SystemMessageDescription.fromResolvedPromptTemplate(resolvedPrompt) : undefined;
     }
 }

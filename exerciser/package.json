@@ -1,5 +1,5 @@
 {
-  "name": "theia-ai-exerciser",
+  "name": "exerciser",
   "keywords": [
     "theia-extension"
   ],
@@ -25,7 +25,8 @@
   },
   "theiaExtensions": [
     {
-      "frontend": "lib/browser/coding-exercise-agent-frontend-module"
+      "frontend": "lib/browser/exerciser-frontend-module"
+    
     }
   ]
 }

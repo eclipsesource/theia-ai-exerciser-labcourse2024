@@ -52,7 +52,7 @@ Start watching all packages, including `browser-app`, of your application with
 
 *or* watch only specific packages with
 
-    cd theia-ai-exerciser
+    cd exerciser
     yarn watch
 
 and the browser example.
@@ -69,7 +69,7 @@ Start watching all packages, including `electron-app`, of your application with
 
 *or* watch only specific packages with
 
-    cd theia-ai-exerciser
+    cd exerciser
     yarn watch
 
 and the Electron example.
@@ -79,7 +79,7 @@ and the Electron example.
 
 Run the example as [described above](#Running-the-Electron-example)
 
-## Publishing theia-ai-exerciser
+## Publishing exerciser
 
 Create a npm user and login to the npm registry, [more on npm publishing](https://docs.npmjs.com/getting-started/publishing-npm-packages).
 
