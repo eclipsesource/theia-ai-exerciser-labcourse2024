@@ -14,98 +14,139 @@
 // SPDX-License-Identifier: EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0
 // *****************************************************************************
 
-import { AbstractStreamParsingChatAgent, ChatAgent, SystemMessageDescription } from '@theia/ai-chat/lib/common';
-import { AgentSpecificVariables, PromptTemplate } from '@theia/ai-core';
-import { AiTerminalAgent } from '@theia/ai-terminal/lib/browser/ai-terminal-agent'
 import { inject, injectable } from '@theia/core/shared/inversify';
-// import { exerciseCreatorTemplate } from "./template";
-// import { CREATE_FILE_FUNCTION_ID, GET_FILE_CONTENT_FUNCTION_ID, GET_WORKSPACE_FILES_FUNCTION_ID } from '../utils/tool-functions/function-names';
+import { AbstractTextToModelParsingChatAgent, ChatAgent, SystemMessageDescription } from '@theia/ai-chat/lib/common';
+import {
+    PromptTemplate,
+    AgentSpecificVariables
+} from '@theia/ai-core';
+
+import { terminalChatAgentTemplate } from "./template";
+
+import {
+    ChatRequestModelImpl,
+    ChatResponseContent,
+    CommandChatResponseContentImpl,
+    CustomCallback,
+    HorizontalLayoutChatResponseContentImpl,
+    MarkdownChatResponseContentImpl,
+} from '@theia/ai-chat';
+import {
+    CommandRegistry,
+    MessageService,
+    generateUuid
+} from '@theia/core';
+
+
+interface ParsedCommand {
+    type: 'terminal-command' | 'no-command'
+    commandId: string;
+    arguments?: string[];
+    message?: string;
+}
 
 @injectable()
-export class TerminalChatAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
-    name: string;
-    description: string;
-    promptTemplates: PromptTemplate[];
-    variables: never[];
-    readonly agentSpecificVariables: AgentSpecificVariables[];
+export class TerminalChatAgent extends AbstractTextToModelParsingChatAgent<ParsedCommand> implements ChatAgent {
+    @inject(CommandRegistry)
+    protected commandRegistry: CommandRegistry;
+    @inject(MessageService)
+    protected messageService: MessageService;
+    readonly name: string;
+    readonly description: string;
+    readonly variables: string[];
+    readonly promptTemplates: PromptTemplate[];
     readonly functions: string[];
+    readonly agentSpecificVariables: AgentSpecificVariables[];
 
-    @inject(AiTerminalAgent)
-    protected terminalAgent: AiTerminalAgent;
-
-    constructor() {
+    constructor(
+    ) {
         super('TerminalChatAgent', [{
-            purpose: 'chat',
+            purpose: 'command',
             identifier: 'openai/gpt-4o',
-        }], 'chat');
-
-        // Set the agent name and description for coding exercises
+        }], 'command');
         this.name = 'TerminalChatAgent';
-        // TODO
-        this.description = 'Agent for assisting with terminal commands in a chat interface';
-
-        // Define the prompt template and variables specific to coding exercises
-        this.promptTemplates = [{id: 'terminal-chat-agent', template: 
-`
-# Instructions
-Generate one or more command suggestions based on the user's request, considering the shell being used,
-the current working directory, and the recent terminal contents. Provide the best suggestion first,
-followed by other relevant suggestions if the user asks for further options. 
-
-Parameters:
-- user-request: The user's question or request.
-- shell: The shell being used, e.g., /usr/bin/zsh.
-- cwd: The current working directory.
-- recent-terminal-contents: The last 0 to 50 recent lines visible in the terminal.
-
-Return the result in the following JSON format:
-{
-  "commands": [
-    "best_command_suggestion",
-    "next_best_command_suggestion",
-    "another_command_suggestion"
-  ]
-}
-
-## Example
-user-request: "How do I commit changes?"
-shell: "/usr/bin/zsh"
-cwd: "/home/user/project"
-recent-terminal-contents:
-git status
-On branch main
-Your branch is up to date with 'origin/main'.
-nothing to commit, working tree clean
-
-## Expected JSON output
-\`\`\`json
-\{
-  "commands": [
-    "git commit",
-    "git commit --amend",
-    "git commit -a"
-  ]
-}
-\`\`\`
-`        }];
+        this.description = 'This agent is aware of all commands that the user can execute within the Theia IDE, the tool that the user is currently working with. \
+        Based on the user request, it can find the right command and then let the user execute it.';
         this.variables = [];
-        this.agentSpecificVariables = [];
+        this.promptTemplates = [terminalChatAgentTemplate];
+        this.functions = [];
+        this.agentSpecificVariables = [{
+            name: 'command-ids',
+            description: 'The list of available commands in Theia.',
+            usedInPrompt: true
+        }];
+    }
+
+    protected async getSystemMessageDescription(): Promise<SystemMessageDescription | undefined> {
+        const knownCommands: string[] = [];
+        for (const command of this.commandRegistry.getAllCommands()) {
+            knownCommands.push(`${command.id}: ${command.label}`);
+        }
+        const systemPrompt = await this.promptService.getPrompt(terminalChatAgentTemplate.id);
+        if (systemPrompt === undefined) {
+            throw new Error('Couldn\'t get system prompt ');
+        }
+        return SystemMessageDescription.fromResolvedPromptTemplate(systemPrompt);
+    }
+
+    /**
+     * @param text the text received from the language model
+     * @returns the parsed command if the text contained a valid command.
+     * If there was no json in the text, return a no-command response.
+     */
+    protected async parseTextResponse(text: string): Promise<any> {
+        const jsonMatch = text.match(/(\{[\s\S]*\})/);
+        const jsonString = jsonMatch ? jsonMatch[1] : `[]`;  
+        console.log("3234234234423",jsonString)
+        const parsedCommand = JSON.parse(jsonString);
+        return parsedCommand;
     }
 
     
-    protected override async getSystemMessageDescription(): Promise<SystemMessageDescription | undefined> {
-        /*
-        const resolvedPrompt = await this.promptService.getPrompt(this.promptTemplates[0].id);
 
-        console.log('*** RESOLVED PROMPT ***', resolvedPrompt?.text)
 
-        if (resolvedPrompt?.text) {
-            const command = await this.terminalAgent.getCommands(resolvedPrompt?.text, "", "", [])
-            console.log('*** TERMINAL CHAT AGENT OUTPUT ***', command);
+    protected createResponseContent(parsedCommand: any, request: ChatRequestModelImpl): ChatResponseContent {
+        // if (parsedCommand.type === 'terminal-command') {
+        //     const theiaCommand = this.commandRegistry.getCommand(parsedCommand.commandId);
+        //     if (theiaCommand === undefined) {
+        //         console.error(`No Theia Command with id ${parsedCommand.commandId}`);
+        //         request.response.cancel();
+        //     }
+        if(parsedCommand){
+            // const args = parsedCommand.arguments !== undefined &&
+            //     parsedCommand.arguments.length > 0
+            //     ? parsedCommand.arguments
+            //     : undefined;
+            const id = `ai-command-${generateUuid()}`;
+            //const commandArgs = Array.isArray(parsedCommand.arguments) ? parsedCommand.arguments : [];
+
+            const commandArgs = parsedCommand.arguments !== undefined && parsedCommand.arguments.length > 0 ? parsedCommand.arguments : [];
+            //const args = [id, ...commandArgs];
+                const customCallback: CustomCallback = {
+                //     label: 'Copy the command to the terminal',
+                //     callback: () => { 
+                //     console.log("***** xdddddddd *****")
+                //     return new Promise(() => {}) 
+                //   }
+                label: 'AI command',
+                callback: () => this.commandCallback(),
+               };
+            return new HorizontalLayoutChatResponseContentImpl([
+              new MarkdownChatResponseContentImpl(
+                    'I found this command that might help you:'
+            
+                ),
+
+               new CommandChatResponseContentImpl(undefined, customCallback)
+            ]);
+        } else {
+            return new MarkdownChatResponseContentImpl( 'Sorry, I can\'t find such a command');
         }
+    }
 
-        return resolvedPrompt ? SystemMessageDescription.fromResolvedPromptTemplate(resolvedPrompt) : undefined;
-        */
-        return undefined
+    protected async commandCallback(): Promise<void> {
+        console.log("***** xdddddddd *****")
+        // this.messageService.info(`Executing callback with args ${commandArgs.join(', ')}. The first arg is the command id registered for the dynamically registered command. 
+        // The other args are the actual args for the handler.`, 'Got it');
     }
 }
