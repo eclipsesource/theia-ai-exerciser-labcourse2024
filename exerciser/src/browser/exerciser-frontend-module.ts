@@ -2,6 +2,7 @@ import { ContainerModule } from 'inversify';
 import { ExerciseCreatorAgent } from './exercise-creator/exercise-creator';
 import { ChatAgent } from '@theia/ai-chat/lib/common';
 import { ExerciseConductorAgent } from './exercise-conductor/exercise-conductor';
+import { TerminalChatAgent } from './terminal-chat-agent/terminal-chat-agent';
 
 import { Agent, ToolProvider } from '@theia/ai-core/lib/common';
 import { CreateFile } from './utils/tool-functions/create-file';
@@ -17,9 +18,14 @@ export default new ContainerModule(bind => {
     bind(Agent).toService(ExerciseConductorAgent);
     bind(ChatAgent).toService(ExerciseConductorAgent);
 
+    bind(TerminalChatAgent).toSelf().inSingletonScope;
+    bind(Agent).toService(TerminalChatAgent);
+    bind(ChatAgent).toService(TerminalChatAgent);
+
     bind(ToolProvider).to(CreateFile);
     bind(ToolProvider).to(GetFileContent);
     bind(ToolProvider).to(GetWorkspaceFiles);
+    
 
 });
 
