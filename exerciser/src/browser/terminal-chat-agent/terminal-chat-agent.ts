@@ -34,7 +34,7 @@ import {
 import {
     CommandRegistry,
     MessageService,
-    generateUuid
+    // generateUuid
 } from '@theia/core';
 
 
@@ -78,10 +78,7 @@ export class TerminalChatAgent extends AbstractTextToModelParsingChatAgent<Parse
     }
 
     protected async getSystemMessageDescription(): Promise<SystemMessageDescription | undefined> {
-        const knownCommands: string[] = [];
-        for (const command of this.commandRegistry.getAllCommands()) {
-            knownCommands.push(`${command.id}: ${command.label}`);
-        }
+
         const systemPrompt = await this.promptService.getPrompt(terminalChatAgentTemplate.id);
         if (systemPrompt === undefined) {
             throw new Error('Couldn\'t get system prompt ');
@@ -96,57 +93,41 @@ export class TerminalChatAgent extends AbstractTextToModelParsingChatAgent<Parse
      */
     protected async parseTextResponse(text: string): Promise<any> {
         const jsonMatch = text.match(/(\{[\s\S]*\})/);
-        const jsonString = jsonMatch ? jsonMatch[1] : `[]`;  
-        console.log("3234234234423",jsonString)
+        const jsonString = jsonMatch ? jsonMatch[1] : `[]`;
         const parsedCommand = JSON.parse(jsonString);
         return parsedCommand;
     }
 
-    
-
 
     protected createResponseContent(parsedCommand: any, request: ChatRequestModelImpl): ChatResponseContent {
-        // if (parsedCommand.type === 'terminal-command') {
-        //     const theiaCommand = this.commandRegistry.getCommand(parsedCommand.commandId);
-        //     if (theiaCommand === undefined) {
-        //         console.error(`No Theia Command with id ${parsedCommand.commandId}`);
-        //         request.response.cancel();
-        //     }
-        if(parsedCommand){
+
+        if (parsedCommand) {
             // const args = parsedCommand.arguments !== undefined &&
             //     parsedCommand.arguments.length > 0
             //     ? parsedCommand.arguments
             //     : undefined;
-            const id = `ai-command-${generateUuid()}`;
+            // const id = `ai-command-${generateUuid()}`;
             //const commandArgs = Array.isArray(parsedCommand.arguments) ? parsedCommand.arguments : [];
-
-            const commandArgs = parsedCommand.arguments !== undefined && parsedCommand.arguments.length > 0 ? parsedCommand.arguments : [];
+            // const commandArgs = parsedCommand.arguments !== undefined && parsedCommand.arguments.length > 0 ? parsedCommand.arguments : [];
             //const args = [id, ...commandArgs];
-                const customCallback: CustomCallback = {
-                //     label: 'Copy the command to the terminal',
-                //     callback: () => { 
-                //     console.log("***** xdddddddd *****")
-                //     return new Promise(() => {}) 
-                //   }
-                label: 'AI command',
-                callback: () => this.commandCallback(),
-               };
-            return new HorizontalLayoutChatResponseContentImpl([
-              new MarkdownChatResponseContentImpl(
-                    'I found this command that might help you:'
-            
-                ),
 
-               new CommandChatResponseContentImpl(undefined, customCallback)
+            const customCallback: CustomCallback = {
+                label: 'Copy the command to terminal', 
+                callback: () => this.commandCallback(),
+            };
+            return new HorizontalLayoutChatResponseContentImpl([
+                new MarkdownChatResponseContentImpl(
+                    'I found this command that might help you: test terminal command'
+                ),
+                new CommandChatResponseContentImpl(undefined, customCallback)
             ]);
         } else {
-            return new MarkdownChatResponseContentImpl( 'Sorry, I can\'t find such a command');
+            return new MarkdownChatResponseContentImpl('Sorry, I can\'t find a suitable command for you');
         }
     }
 
     protected async commandCallback(): Promise<void> {
-        console.log("***** xdddddddd *****")
-        // this.messageService.info(`Executing callback with args ${commandArgs.join(', ')}. The first arg is the command id registered for the dynamically registered command. 
-        // The other args are the actual args for the handler.`, 'Got it');
+        console.log("***** test *****")
     }
 }
+
