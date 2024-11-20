@@ -119,7 +119,7 @@ export class TerminalChatAgent extends AbstractTextToModelParsingChatAgent<Parse
                 new MarkdownChatResponseContentImpl(
                     'I found this command that might help you: test terminal command'
                 ),
-                new CommandChatResponseContentImpl(undefined, customCallback)
+                new CommandChatResponseContentImpl({id: 'custom-command'}, customCallback)
             ]);
         } else {
             return new MarkdownChatResponseContentImpl('Sorry, I can\'t find a suitable command for you');
