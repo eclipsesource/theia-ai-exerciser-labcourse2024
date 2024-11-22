@@ -16,7 +16,7 @@
 
 import {
     AbstractStreamParsingChatAgent,
-    ChatAgent, CodeChatResponseContentImpl,
+    ChatAgent,
     ErrorChatResponseContentImpl,
     SystemMessageDescription
 } from '@theia/ai-chat/lib/common';
@@ -39,6 +39,9 @@ import {
 import {ExerciseCreatorResponse} from "./types";
 import {WorkspaceService} from "@theia/workspace/lib/browser";
 import {FileService} from "@theia/filesystem/lib/browser/file-service";
+import {
+    CreateExerciseFileChatResponseContentImpl
+} from "../chat-response-renderer/create-exercise-file-renderer";
 
 @injectable()
 export class ExerciseCreatorAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
@@ -96,9 +99,13 @@ export class ExerciseCreatorAgent extends AbstractStreamParsingChatAgent impleme
             request.response.response.addContent(new MarkdownChatResponseContentImpl(beforeJson));
             try {
                 const exerciseCreatorResponse: ExerciseCreatorResponse = JSON.parse(jsonString);
+                /*
                 exerciseCreatorResponse.exerciseFiles.forEach(exerciseFile => {
                     request.response.response.addContent(new CodeChatResponseContentImpl(exerciseFile.content));
                 })
+                */
+                request.response.response.addContent(new CreateExerciseFileChatResponseContentImpl(exerciseCreatorResponse));
+
                 const generateFileChatResponse = this.filesToBeGenerated(exerciseCreatorResponse);
                 generateFileChatResponse && request.response.response.addContent(generateFileChatResponse);
             } catch (error) {

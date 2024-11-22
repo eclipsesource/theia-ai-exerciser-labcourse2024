@@ -8,6 +8,8 @@ import { Agent, ToolProvider } from '@theia/ai-core/lib/common';
 import { CreateFile } from './utils/tool-functions/create-file';
 import { GetFileContent } from './utils/tool-functions/get-file-content';
 import { GetWorkspaceFiles } from './utils/tool-functions/get-workspace-files';
+import {ChatResponsePartRenderer} from "@theia/ai-chat-ui/lib/browser/chat-response-part-renderer";
+import {CreateExerciseFileRenderer} from "./chat-response-renderer/create-exercise-file-renderer";
 
 export default new ContainerModule(bind => {
     bind(ExerciseCreatorAgent).toSelf().inSingletonScope;
@@ -25,5 +27,7 @@ export default new ContainerModule(bind => {
     bind(ToolProvider).to(CreateFile);
     bind(ToolProvider).to(GetFileContent);
     bind(ToolProvider).to(GetWorkspaceFiles);
+
+    bind(ChatResponsePartRenderer).to(CreateExerciseFileRenderer).inSingletonScope();
 });
 
