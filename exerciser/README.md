@@ -2,6 +2,7 @@
 
 This exerciser is an agent integrated in the THEIA-IDE, which can be used to do programming exercises
 
+---
 ## System design
 
 ```mermaid
@@ -36,10 +37,11 @@ flowchart TD
     Support --> ExerciseService
     Sharing --> ExerciseService & OtherUser
 
+```
+
 ## Requirement
 
 
-### Project Name: Theia AI Exerciser
 
 **1. Purpose**
 
