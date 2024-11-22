@@ -16,7 +16,7 @@
 
 import {
     AbstractStreamParsingChatAgent,
-    ChatAgent,
+    ChatAgent, CodeChatResponseContentImpl,
     ErrorChatResponseContentImpl,
     SystemMessageDescription
 } from '@theia/ai-chat/lib/common';
@@ -88,45 +88,44 @@ export class ExerciseCreatorAgent extends AbstractStreamParsingChatAgent impleme
 
     protected override async addContentsToResponse(response: LanguageModelResponse, request: ChatRequestModelImpl): Promise<void> {
         const responseText = await getTextOfResponse(response);
-        request.response.response.addContent(new MarkdownChatResponseContentImpl(responseText));
-        const generateFileChatResponse = this.filesToBeGenerated(responseText);
-        generateFileChatResponse && request.response.response.addContent(generateFileChatResponse);
-    }
-
-    filesToBeGenerated(text: string) {
         const jsonRegex = /{[\s\S]*}/;
-        const jsonMatch = text.match(jsonRegex);
+        const jsonMatch = responseText.match(jsonRegex);
         if (jsonMatch) {
             const jsonString = jsonMatch[0];
+            const beforeJson = responseText.slice(0, jsonMatch.index!);
+            request.response.response.addContent(new MarkdownChatResponseContentImpl(beforeJson));
             try {
                 const exerciseCreatorResponse: ExerciseCreatorResponse = JSON.parse(jsonString);
-                const customCallback: CustomCallback = {
-                    label: 'Create Files',
-                    callback: async () => {
-                        const wsRoots = await this.workspaceService.roots;
-                        /*
-                        const result: string[] = [];
-                        for (const root of wsRoots) {
-                            result.push(...await this.listFilesRecursively(root.resource));
-                        }
-                        */
-                        for (const fileToBeGenerated of exerciseCreatorResponse.exerciseFiles) {
-                            const rootUri = wsRoots[0].resource;
-                            const fileUri = rootUri.resolve(fileToBeGenerated.fileName);
-                            await this.fileService.write(fileUri, fileToBeGenerated.content);
-                        }
-                        for (const fileToBeGenerated of exerciseCreatorResponse.conductorFiles) {
-                            const rootUri = wsRoots[0].resource;
-                            const fileUri = rootUri.resolve(fileToBeGenerated.fileName);
-                            await this.fileService.write(fileUri, fileToBeGenerated.content);
-                        }
-                    }
-                };
-                return new CommandChatResponseContentImpl({id: 'custom-command'}, customCallback);
+                exerciseCreatorResponse.exerciseFiles.forEach(exerciseFile => {
+                    request.response.response.addContent(new CodeChatResponseContentImpl(exerciseFile.content));
+                })
+                const generateFileChatResponse = this.filesToBeGenerated(exerciseCreatorResponse);
+                generateFileChatResponse && request.response.response.addContent(generateFileChatResponse);
             } catch (error) {
-                return new ErrorChatResponseContentImpl(new Error("Error while parsing files"));
+                request.response.response.addContent(new ErrorChatResponseContentImpl(new Error("Error while parsing files")));
             }
+        } else {
+            request.response.response.addContent(new MarkdownChatResponseContentImpl(responseText));
         }
-        return undefined
+    }
+
+    filesToBeGenerated(exerciseCreatorResponse: ExerciseCreatorResponse) {
+        const customCallback: CustomCallback = {
+            label: 'Create Files',
+            callback: async () => {
+                const wsRoots = await this.workspaceService.roots;
+                for (const fileToBeGenerated of exerciseCreatorResponse.exerciseFiles) {
+                    const rootUri = wsRoots[0].resource;
+                    const fileUri = rootUri.resolve(fileToBeGenerated.fileName);
+                    await this.fileService.write(fileUri, fileToBeGenerated.content);
+                }
+                for (const fileToBeGenerated of exerciseCreatorResponse.conductorFiles) {
+                    const rootUri = wsRoots[0].resource;
+                    const fileUri = rootUri.resolve(fileToBeGenerated.fileName);
+                    await this.fileService.write(fileUri, fileToBeGenerated.content);
+                }
+            }
+        };
+        return new CommandChatResponseContentImpl({id: 'custom-command'}, customCallback);
     }
 }
