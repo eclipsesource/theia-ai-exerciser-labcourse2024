@@ -25,7 +25,5 @@ export default new ContainerModule(bind => {
     bind(ToolProvider).to(CreateFile);
     bind(ToolProvider).to(GetFileContent);
     bind(ToolProvider).to(GetWorkspaceFiles);
-    
-
 });
 
