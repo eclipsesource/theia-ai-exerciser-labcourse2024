@@ -14,11 +14,34 @@
 // SPDX-License-Identifier: EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0
 // *****************************************************************************
 
-import { AbstractStreamParsingChatAgent, ChatAgent, SystemMessageDescription } from '@theia/ai-chat/lib/common';
-import { AgentSpecificVariables, PromptTemplate, ToolInvocationRegistry } from '@theia/ai-core';
+import {
+    AbstractStreamParsingChatAgent,
+    ChatAgent,
+    ErrorChatResponseContentImpl,
+    SystemMessageDescription
+} from '@theia/ai-chat/lib/common';
+import {
+    AgentSpecificVariables,
+    getTextOfResponse,
+    LanguageModelResponse,
+    PromptTemplate,
+    ToolInvocationRegistry
+} from '@theia/ai-core';
 import { inject, injectable } from '@theia/core/shared/inversify';
 import { exerciseCreatorTemplate } from "./template";
 import { CREATE_FILE_FUNCTION_ID, GET_FILE_CONTENT_FUNCTION_ID, GET_WORKSPACE_FILES_FUNCTION_ID } from '../utils/tool-functions/function-names';
+import {ILogger} from "@theia/core";
+import {
+    ChatRequestModelImpl, CommandChatResponseContentImpl,
+    CustomCallback,
+    MarkdownChatResponseContentImpl
+} from "@theia/ai-chat";
+import {ExerciseCreatorResponse} from "./types";
+import {WorkspaceService} from "@theia/workspace/lib/browser";
+import {FileService} from "@theia/filesystem/lib/browser/file-service";
+import {
+    CreateExerciseFileChatResponseContentImpl
+} from "../chat-response-renderer/create-exercise-file-renderer";
 
 @injectable()
 export class ExerciseCreatorAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
@@ -31,6 +54,15 @@ export class ExerciseCreatorAgent extends AbstractStreamParsingChatAgent impleme
 
     @inject(ToolInvocationRegistry)
     protected toolInvocationRegistry: ToolInvocationRegistry;
+
+    @inject(ILogger)
+    protected readonly logger: ILogger;
+
+    @inject(WorkspaceService)
+    protected readonly workspaceService: WorkspaceService;
+
+    @inject(FileService)
+    protected readonly fileService: FileService;
 
     constructor() {
         super('ExerciseCreator', [{
@@ -55,5 +87,52 @@ export class ExerciseCreatorAgent extends AbstractStreamParsingChatAgent impleme
     protected override async getSystemMessageDescription(): Promise<SystemMessageDescription | undefined> {
         const resolvedPrompt = await this.promptService.getPrompt(exerciseCreatorTemplate.id);
         return resolvedPrompt ? SystemMessageDescription.fromResolvedPromptTemplate(resolvedPrompt) : undefined;
+    }
+
+    protected override async addContentsToResponse(response: LanguageModelResponse, request: ChatRequestModelImpl): Promise<void> {
+        const responseText = await getTextOfResponse(response);
+        const jsonRegex = /{[\s\S]*}/;
+        const jsonMatch = responseText.match(jsonRegex);
+        if (jsonMatch) {
+            const jsonString = jsonMatch[0];
+            const beforeJson = responseText.slice(0, jsonMatch.index!);
+            request.response.response.addContent(new MarkdownChatResponseContentImpl(beforeJson));
+            try {
+                const exerciseCreatorResponse: ExerciseCreatorResponse = JSON.parse(jsonString);
+                /*
+                exerciseCreatorResponse.exerciseFiles.forEach(exerciseFile => {
+                    request.response.response.addContent(new CodeChatResponseContentImpl(exerciseFile.content));
+                })
+                */
+                request.response.response.addContent(new CreateExerciseFileChatResponseContentImpl(exerciseCreatorResponse));
+
+                const generateFileChatResponse = this.filesToBeGenerated(exerciseCreatorResponse);
+                generateFileChatResponse && request.response.response.addContent(generateFileChatResponse);
+            } catch (error) {
+                request.response.response.addContent(new ErrorChatResponseContentImpl(new Error("Error while parsing files")));
+            }
+        } else {
+            request.response.response.addContent(new MarkdownChatResponseContentImpl(responseText));
+        }
+    }
+
+    filesToBeGenerated(exerciseCreatorResponse: ExerciseCreatorResponse) {
+        const customCallback: CustomCallback = {
+            label: 'Create Files',
+            callback: async () => {
+                const wsRoots = await this.workspaceService.roots;
+                for (const fileToBeGenerated of exerciseCreatorResponse.exerciseFiles) {
+                    const rootUri = wsRoots[0].resource;
+                    const fileUri = rootUri.resolve(fileToBeGenerated.fileName);
+                    await this.fileService.write(fileUri, fileToBeGenerated.content);
+                }
+                for (const fileToBeGenerated of exerciseCreatorResponse.conductorFiles) {
+                    const rootUri = wsRoots[0].resource;
+                    const fileUri = rootUri.resolve(fileToBeGenerated.fileName);
+                    await this.fileService.write(fileUri, fileToBeGenerated.content);
+                }
+            }
+        };
+        return new CommandChatResponseContentImpl({id: 'custom-command'}, customCallback);
     }
 }

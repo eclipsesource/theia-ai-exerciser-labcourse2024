@@ -28,17 +28,17 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          - Provide the output in the following JSON format:
            \`\`\`json
            {
-              "exercise_summarization": "<Short summary of the exercise>",
-              "file_list_summarization": "<Summary of file structure>",
-              "exercise_files": [
+              "exerciseSummarization": "<Short summary of the exercise>",
+              "fileListSummarization": "<Summary of file structure>",
+              "exerciseFiles": [
                  {
-                    "filename": "<File name>",
+                    "fileName": "<File name>",
                     "content": "<Complete content of the file>"
                  }
               ],
-              "conductor_files": [
+              "conductorFiles": [
                  {
-                    "filename": "<File name with _conductor prefix>",
+                    "fileName": "<File name with _conductor prefix>",
                     "content": "<Instructions from the corresponding exercise file>"
                  }
               ]
@@ -52,25 +52,25 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          **Correct Example 1:**
          \`\`\`json
          {
-            "exercise_summarization": "Implementing a basic HTTP server in Node.js.",
-            "file_list_summarization": "The exercise involves creating a server file and a configuration file.",
-            "exercise_files": [
+            "exerciseSummarization": "Implementing a basic HTTP server in Node.js.",
+            "fileListSummarization": "The exercise involves creating a server file and a configuration file.",
+            "exerciseFiles": [
                {
-                  "filename": "server.js",
+                  "fileName": "server.js",
                   "content": "/*\\n   Exercise: Create an HTTP server using Node.js\\n   Instructions:\\n   1. Use the 'http' module to create a server.\\n   2. The server should listen on port 3000 and respond with 'Hello, World!'.\\n\\n   Solution:\\n*/\\n\\nconst http = require('http');\\n\\nconst server = http.createServer((req, res) => {\\n   res.writeHead(200, {'Content-Type': 'text/plain'});\\n   res.end('Hello, World!');\\n});\\n\\nserver.listen(3000, () => {\\n   console.log('Server running at http://localhost:3000/');\\n});"
                },
                {
-                  "filename": "config.json",
+                  "fileName": "config.json",
                   "content": "/*\\n   Configuration File for the HTTP Server Exercise\\n   Instructions:\\n   Define the server's port number here.\\n\\n   Solution:\\n*/\\n{\\n   \\"port\\": 3000\\n}"
                }
             ],
-            "conductor_files": [
+            "conductorFiles": [
                {
-                  "filename": "server_conductor.js",
+                  "fileName": "server_conductor.js",
                   "content": "/*\\n   Exercise: Create an HTTP server using Node.js\\n   Instructions:\\n   1. Use the 'http' module to create a server.\\n   2. The server should listen on port 3000 and respond with 'Hello, World!'.\\n*/"
                },
                {
-                  "filename": "config_conductor.json",
+                  "fileName": "config_conductor.json",
                   "content": "/*\\n   Configuration File for the HTTP Server Exercise\\n   Instructions:\\n   Define the server's port number here.\\n*/"
                }
             ]
@@ -80,17 +80,17 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          **Correct Example 2:**
          \`\`\`json
          {
-            "exercise_summarization": "Creating a basic calculator in Python.",
-            "file_list_summarization": "The exercise includes a Python script for the calculator and a readme file.",
-            "exercise_files": [
+            "exerciseSummarization": "Creating a basic calculator in Python.",
+            "fileListSummarization": "The exercise includes a Python script for the calculator and a readme file.",
+            "exerciseFiles": [
                {
-                  "filename": "calculator.py",
+                  "fileName": "calculator.py",
                   "content": "'''\\n   Exercise: Build a Python calculator.\\n   Instructions:\\n   1. Create a calculator program that can perform addition, subtraction, multiplication, and division.\\n   2. The program should accept user input for two numbers and an operation.\\n   3. Include error handling for invalid inputs and division by zero.\\n\\n   Solution:\\n'''\\n\\ndef calculator():\\n    print('Welcome to the Python Calculator!')\\n    try:\\n        num1 = float(input('Enter the first number: '))\\n        num2 = float(input('Enter the second number: '))\\n        operation = input('Enter the operation (+, -, *, /): ')\\n\\n        if operation == '+':\\n            print(f'Result: {num1 + num2}')\\n        elif operation == '-':\\n            print(f'Result: {num1 - num2}')\\n        elif operation == '*':\\n            print(f'Result: {num1 * num2}')\\n        elif operation == '/':\\n            if num2 != 0:\\n                print(f'Result: {num1 / num2}')\\n            else:\\n                print('Error: Division by zero is not allowed.')\\n        else:\\n            print('Invalid operation!')\\n    except ValueError:\\n        print('Invalid input! Please enter numeric values.')\\n\\ncalculator()"
                }
             ],
-            "conductor_files": [
+            "conductorFiles": [
                {
-                  "filename": "calculator_conductor.py",
+                  "fileName": "calculator_conductor.py",
                   "content": "'''\\n   Exercise: Build a Python calculator.\\n   Instructions:\\n   1. Create a calculator program that can perform addition, subtraction, multiplication, and division.\\n   2. The program should accept user input for two numbers and an operation.\\n   3. Include error handling for invalid inputs and division by zero.\\n'''"
                }
             ]
@@ -101,17 +101,17 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          - Conductor file does not include _conductor prefix.
          \`\`\`json
          {
-            "exercise_summarization": "Creating a basic calculator in Python.",
-            "file_list_summarization": "The exercise includes a Python script for the calculator.",
-            "exercise_files": [
+            "exerciseSummarization": "Creating a basic calculator in Python.",
+            "fileListSummarization": "The exercise includes a Python script for the calculator.",
+            "exerciseFiles": [
                {
-                  "filename": "calculator.py",
+                  "fileName": "calculator.py",
                   "content": "Complete content here."
                }
             ],
-            "conductor_files": [
+            "conductorFiles": [
                {
-                  "filename": "calculator.py", // Incorrect: Missing _conductor prefix
+                  "fileName": "calculator.py", // Incorrect: Missing _conductor prefix
                   "content": "Instructions here."
                }
             ]
@@ -122,17 +122,17 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          - Conductor file contains code or solutions.
          \`\`\`json
          {
-            "exercise_summarization": "Creating a basic calculator in Python.",
-            "file_list_summarization": "The exercise includes a Python script for the calculator.",
-            "exercise_files": [
+            "exerciseSummarization": "Creating a basic calculator in Python.",
+            "fileListSummarization": "The exercise includes a Python script for the calculator.",
+            "exerciseFiles": [
                {
-                  "filename": "calculator.py",
+                  "fileName": "calculator.py",
                   "content": "Complete content for a calculator exercise."
                }
             ],
-            "conductor_files": [
+            "conductorFiles": [
                {
-                  "filename": "calculator_conductor.py",
+                  "fileName": "calculator_conductor.py",
                   "content": "Code and solutions here." // Incorrect: Should only contain instructions
                }
             ]
