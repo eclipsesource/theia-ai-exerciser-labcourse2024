@@ -1,6 +1,6 @@
 import { injectable } from '@theia/core/shared/inversify';
 
-@injectable()
+
 export interface ExerciseFile{
     filename: string;
     content: string;
@@ -15,6 +15,7 @@ export  interface Exercise {
     exercise_files: ExerciseFile[];
     conductor_files: ExerciseFile[];
 }
+@injectable()
 export class ExerciseService {
     private exercises: Exercise[] = [];
 
