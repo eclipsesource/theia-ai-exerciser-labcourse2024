@@ -4,7 +4,7 @@ import { ExerciseService} from "../../exercise-service";
 
 @injectable()
 export class UpdateExercise implements ToolProvider {
-    static ID = 'UPDATE_EXERCISE_ID';
+    static ID = 'UPDATE_EXERCISE_FUNCTION_ID';
 
     @inject(ExerciseService)
     protected readonly exerciseService: ExerciseService;

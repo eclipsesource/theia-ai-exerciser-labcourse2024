@@ -1,4 +1,4 @@
-import {  injectable } from '@theia/core/shared/inversify';
+import { injectable } from '@theia/core/shared/inversify';
 
 export interface ExerciseFile{
     filename: string;
@@ -7,12 +7,12 @@ export interface ExerciseFile{
 
 
 export  interface Exercise {
-    exercise_id:string;
-    exercise_name: string;
-    exercise_summarization: string;
-    file_list_summarization: string;
-    exercise_files: ExerciseFile[];
-    conductor_files: ExerciseFile[];
+    exerciseId:string;
+    exerciseName: string;
+    exerciseSummarization: string;
+    fileListSummarization: string;
+    exerciseFiles: ExerciseFile[];
+    conductorFiles: ExerciseFile[];
 }
 @injectable()
 export class ExerciseService {
@@ -27,7 +27,7 @@ export class ExerciseService {
      */
     addExercise(exercise: Exercise): boolean {
         this.exercises.push(exercise);
-        console.log(`Exercise added: ${exercise.exercise_name}`);
+        console.log(`Exercise added: ${exercise.exerciseName}`);
         return true;
     }
 
@@ -37,7 +37,7 @@ export class ExerciseService {
      * @returns The exercise with the specified ID, or null if not found.
      */
     getExercise(exercise_id: string): Exercise | null {
-        const exercise = this.exercises.find(ex => ex.exercise_id === exercise_id);
+        const exercise = this.exercises.find(ex => ex.exerciseId === exercise_id);
         if (!exercise) {
             console.error(`Exercise with ID ${exercise_id} not found.`);
             return null;
@@ -51,9 +51,9 @@ export class ExerciseService {
      */
     getExerciseList(): { id: string; exerciseName: string; exerciseSummary: string }[] {
         return this.exercises.map((exercise) => ({
-            id: exercise.exercise_id,
-            exerciseName: exercise.exercise_name,
-            exerciseSummary: exercise.exercise_summarization,
+            id: exercise.exerciseId,
+            exerciseName: exercise.exerciseName,
+            exerciseSummary: exercise.exerciseSummarization,
         }));
     }
 
@@ -64,7 +64,7 @@ export class ExerciseService {
      * @returns A boolean indicating success or failure.
      */
     updateExercise(exercise_id: string, updatedExercise: Exercise): boolean {
-        const exercise = this.exercises.find(ex => ex.exercise_id === exercise_id);
+        const exercise = this.exercises.find(ex => ex.exerciseId === exercise_id);
         if (!exercise) {
             console.error(`Exercise with ID ${exercise_id} not found.`);
             return false;
@@ -73,7 +73,7 @@ export class ExerciseService {
         // Update the entire exercise object
         Object.assign(exercise, updatedExercise);
 
-        console.log(`Exercise updated: ${updatedExercise.exercise_name}`);
+        console.log(`Exercise updated: ${updatedExercise.exerciseName}`);
         return true;
     }
 }

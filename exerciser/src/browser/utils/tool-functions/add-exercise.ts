@@ -4,7 +4,7 @@ import { ExerciseService , Exercise} from "../../exercise-service";
 
 @injectable()
 export class AddExercise implements ToolProvider {
-    static ID = 'ADD_EXERCISE_ID';
+    static ID = 'ADD_EXERCISE_FUNCTION_ID';
 
     @inject(ExerciseService)
     protected readonly exerciseService: ExerciseService;
@@ -53,7 +53,7 @@ export class AddExercise implements ToolProvider {
             handler: async (arg_string: string): Promise<string> => {
                 const { exercise } = this.parseArgs(arg_string);
                 return  this.exerciseService.addExercise(exercise)
-                    ? `Exercise "${exercise.exercise_name}" added successfully.`
+                    ? `Exercise "${exercise.exerciseName}" added successfully.`
                     : `Failed to add exercise.`;
             },
         };

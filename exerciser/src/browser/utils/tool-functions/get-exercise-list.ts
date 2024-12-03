@@ -4,7 +4,7 @@ import { ExerciseService } from "../../exercise-service";
 
 @injectable()
 export class GetExerciseList implements ToolProvider {
-    static ID = 'GET_EXERCISE_LIST_ID';
+    static ID = 'GET_EXERCISE_LIST_FUNCTION_ID';
 
     @inject(ExerciseService)
     protected readonly exerciseService: ExerciseService;
@@ -15,7 +15,7 @@ export class GetExerciseList implements ToolProvider {
             name: 'Get Exercise List',
             description: 'Retrieve a list of all exercise names and summarizations.',
             
-            handler: async (): Promise<{ exerciseName: string; exerciseSummary: string }[]> => {
+            handler: async (): Promise<{ id:string;exerciseName: string; exerciseSummary: string }[]> => {
                 const exercises = this.exerciseService.getExerciseList();
                 return exercises;
             },
