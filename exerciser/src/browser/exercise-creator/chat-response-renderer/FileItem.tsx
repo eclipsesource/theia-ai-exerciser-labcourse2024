@@ -1,5 +1,5 @@
 import * as React from '@theia/core/shared/react';
-import {fileToBeGenerated} from "../exercise-creator/types";
+import {fileToBeGenerated} from "../types";
 
 export type Props = {
     file: fileToBeGenerated

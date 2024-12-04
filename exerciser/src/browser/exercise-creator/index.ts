@@ -37,12 +37,12 @@ import {
 } from "@theia/ai-chat";
 import {ExerciseCreatorResponse} from "./types";
 import {
-    CreateExerciseFileChatResponseContentImpl
-} from "../chat-response-renderer/create-exercise-file-renderer";
+    CreateExerciseChatResponseContentImpl
+} from "./chat-response-renderer/create-exercise-renderer";
 import {ExerciseService} from "../exercise-service";
 
 @injectable()
-export class ExerciseCreatorAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
+export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
     name: string;
     description: string;
     promptTemplates: PromptTemplate[];
@@ -88,7 +88,7 @@ export class ExerciseCreatorAgent extends AbstractStreamParsingChatAgent impleme
             request.response.response.addContent(new MarkdownChatResponseContentImpl(beforeJson));
             try {
                 const exerciseCreatorResponse: ExerciseCreatorResponse = JSON.parse(jsonString);
-                const exerciseContentChatResponse = new CreateExerciseFileChatResponseContentImpl(exerciseCreatorResponse);
+                const exerciseContentChatResponse = new CreateExerciseChatResponseContentImpl(exerciseCreatorResponse);
                 const generateFileChatResponse = this.filesToBeGenerated(exerciseCreatorResponse);
                 request.response.response.addContent(exerciseContentChatResponse);
                 request.response.response.addContent(generateFileChatResponse);

@@ -19,16 +19,16 @@ import {injectable} from "@theia/core/shared/inversify";
 import {ChatResponsePartRenderer} from "@theia/ai-chat-ui/lib/browser/chat-response-part-renderer";
 import {ChatResponseContent} from "@theia/ai-chat";
 import * as React from '@theia/core/shared/react';
-import {ExerciseCreatorResponse} from "../exercise-creator/types";
+import {ExerciseCreatorResponse} from "../types";
 import {FileList} from "./FileList";
 
-export interface CreateExerciseFileChatResponseContent
+export interface CreateExerciseChatResponseContent
     extends ChatResponseContent {
     kind: 'createExerciseFile';
     content: ExerciseCreatorResponse;
 }
 
-export class CreateExerciseFileChatResponseContentImpl implements CreateExerciseFileChatResponseContent {
+export class CreateExerciseChatResponseContentImpl implements CreateExerciseChatResponseContent {
     readonly kind = 'createExerciseFile';
     protected _content: ExerciseCreatorResponse;
 
@@ -44,14 +44,14 @@ export class CreateExerciseFileChatResponseContentImpl implements CreateExercise
         return JSON.stringify(this._content);
     }
 
-    merge(nextChatResponseContent: CreateExerciseFileChatResponseContent): boolean {
+    merge(nextChatResponseContent: CreateExerciseChatResponseContent): boolean {
         this._content = {...this._content, ...nextChatResponseContent.content};
         return true;
     }
 }
 
-export namespace CreateExerciseFileChatResponseContent {
-    export function is(obj: unknown): obj is CreateExerciseFileChatResponseContent {
+export namespace CreateExerciseChatResponseContent {
+    export function is(obj: unknown): obj is CreateExerciseChatResponseContent {
         return (
             ChatResponseContent.is(obj) &&
             obj.kind === 'createExerciseFile' &&
@@ -62,15 +62,15 @@ export namespace CreateExerciseFileChatResponseContent {
 }
 
 @injectable()
-export class CreateExerciseFileRenderer implements ChatResponsePartRenderer<CreateExerciseFileChatResponseContent> {
+export class CreateExerciseRenderer implements ChatResponsePartRenderer<CreateExerciseChatResponseContent> {
     canHandle(response: ChatResponseContent): number {
-        if (CreateExerciseFileChatResponseContent.is(response)) {
+        if (CreateExerciseChatResponseContent.is(response)) {
             return 10;
         }
         return -1;
     }
 
-    render(response: CreateExerciseFileChatResponseContent): React.ReactNode {
+    render(response: CreateExerciseChatResponseContent): React.ReactNode {
         return (
             <div style={{display: "flex", flexDirection: "column"}}>
                 <FileList files={response.content.exerciseFiles}/>

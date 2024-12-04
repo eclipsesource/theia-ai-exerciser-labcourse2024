@@ -1,5 +1,5 @@
 import { ContainerModule } from 'inversify';
-import { ExerciseCreatorAgent } from './exercise-creator/exercise-creator';
+import {ExerciseCreatorChatAgent} from "./exercise-creator";
 import { ChatAgent } from '@theia/ai-chat/lib/common';
 import { ExerciseConductorAgent } from './exercise-conductor/exercise-conductor';
 import { TerminalChatAgent } from './terminal-chat-agent/terminal-chat-agent';
@@ -12,12 +12,12 @@ import { GetExerciseList } from './utils/tool-functions/get-exercise-list';
 import { GetExercise } from './utils/tool-functions/get-exercise';
 import { ExerciseService } from './exercise-service';
 import {ChatResponsePartRenderer} from "@theia/ai-chat-ui/lib/browser/chat-response-part-renderer";
-import {CreateExerciseFileRenderer} from "./chat-response-renderer/create-exercise-file-renderer";
+import {CreateExerciseRenderer} from "./exercise-creator/chat-response-renderer/create-exercise-renderer";
 
 export default new ContainerModule(bind => {
-    bind(ExerciseCreatorAgent).toSelf().inSingletonScope;
-    bind(Agent).toService(ExerciseCreatorAgent);
-    bind(ChatAgent).toService(ExerciseCreatorAgent);
+    bind(ExerciseCreatorChatAgent).toSelf().inSingletonScope;
+    bind(Agent).toService(ExerciseCreatorChatAgent);
+    bind(ChatAgent).toService(ExerciseCreatorChatAgent);
 
     bind(ExerciseConductorAgent).toSelf().inSingletonScope;
     bind(Agent).toService(ExerciseConductorAgent);
@@ -32,9 +32,9 @@ export default new ContainerModule(bind => {
     bind(ToolProvider).to(GetWorkspaceFiles);
     bind(ToolProvider).to(GetExerciseList);
     bind(ToolProvider).to(GetExercise);
-    
+
     bind(ExerciseService).toSelf().inSingletonScope();
 
-    bind(ChatResponsePartRenderer).to(CreateExerciseFileRenderer).inSingletonScope();
+    bind(ChatResponsePartRenderer).to(CreateExerciseRenderer).inSingletonScope();
 });
 
