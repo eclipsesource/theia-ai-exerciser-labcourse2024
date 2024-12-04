@@ -28,6 +28,7 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          - Provide the output in the following JSON format:
            \`\`\`json
            {
+              "exerciseName": "<Short name for the exercise describes what exercise is about>",
               "exerciseSummarization": "<Short summary of the exercise>",
               "fileListSummarization": "<Summary of file structure>",
               "exerciseFiles": [
@@ -52,6 +53,7 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          **Correct Example 1:**
          \`\`\`json
          {
+            "exerciseName": "Node.js HTTP Server",
             "exerciseSummarization": "Implementing a basic HTTP server in Node.js.",
             "fileListSummarization": "The exercise involves creating a server file and a configuration file.",
             "exerciseFiles": [
@@ -80,6 +82,7 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          **Correct Example 2:**
          \`\`\`json
          {
+            "exerciseName": "Python Calculator",
             "exerciseSummarization": "Creating a basic calculator in Python.",
             "fileListSummarization": "The exercise includes a Python script for the calculator and a readme file.",
             "exerciseFiles": [
@@ -101,6 +104,7 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          - Conductor file does not include _conductor prefix.
          \`\`\`json
          {
+            "exerciseName": "Python Calculator",
             "exerciseSummarization": "Creating a basic calculator in Python.",
             "fileListSummarization": "The exercise includes a Python script for the calculator.",
             "exerciseFiles": [
@@ -122,6 +126,7 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          - Conductor file contains code or solutions.
          \`\`\`json
          {
+            "exerciseName": "Python Calculator",
             "exerciseSummarization": "Creating a basic calculator in Python.",
             "fileListSummarization": "The exercise includes a Python script for the calculator.",
             "exerciseFiles": [

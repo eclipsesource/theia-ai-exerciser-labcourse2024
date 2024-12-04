@@ -1,24 +1,13 @@
-import { injectable } from '@theia/core/shared/inversify';
+import {inject, injectable} from '@theia/core/shared/inversify';
+import {ILogger} from "@theia/core";
+import {Exercise} from "./types";
 
-export interface ExerciseFile{
-    filename: string;
-    content: string;
-}
-
-
-export  interface Exercise {
-    exerciseId:string;
-    exerciseName: string;
-    exerciseSummarization: string;
-    fileListSummarization: string;
-    exerciseFiles: ExerciseFile[];
-    conductorFiles: ExerciseFile[];
-}
 @injectable()
 export class ExerciseService {
     private exercises: Exercise[] = [];
 
-    
+    @inject(ILogger)
+    protected readonly logger: ILogger;
 
     /**
      * Add a new exercise to the list.
@@ -27,7 +16,7 @@ export class ExerciseService {
      */
     addExercise(exercise: Exercise): boolean {
         this.exercises.push(exercise);
-        console.log(`Exercise added: ${exercise.exerciseName}`);
+        this.logger.info(`Exercise added: ${exercise.exerciseName}`);
         return true;
     }
 
@@ -39,7 +28,7 @@ export class ExerciseService {
     getExercise(exercise_id: string): Exercise | null {
         const exercise = this.exercises.find(ex => ex.exerciseId === exercise_id);
         if (!exercise) {
-            console.error(`Exercise with ID ${exercise_id} not found.`);
+            this.logger.error(`Exercise with ID ${exercise_id} not found.`);
             return null;
         }
         return exercise;
@@ -66,14 +55,14 @@ export class ExerciseService {
     updateExercise(exercise_id: string, updatedExercise: Exercise): boolean {
         const exercise = this.exercises.find(ex => ex.exerciseId === exercise_id);
         if (!exercise) {
-            console.error(`Exercise with ID ${exercise_id} not found.`);
+            this.logger.error(`Exercise with ID ${exercise_id} not found.`);
             return false;
         }
 
         // Update the entire exercise object
         Object.assign(exercise, updatedExercise);
 
-        console.log(`Exercise updated: ${updatedExercise.exerciseName}`);
+        this.logger.info(`Exercise updated: ${updatedExercise.exerciseName}`);
         return true;
     }
 }

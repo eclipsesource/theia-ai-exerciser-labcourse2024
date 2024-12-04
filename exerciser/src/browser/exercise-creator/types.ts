@@ -1,11 +1,3 @@
-export type ExerciseCreatorResponse = {
-    exerciseSummarization: string;
-    fileListSummarization: string;
-    exerciseFiles: fileToBeGenerated[];
-    conductorFiles: fileToBeGenerated[];
-}
+import {Exercise} from "../exercise-service/types";
 
-export type fileToBeGenerated = {
-    fileName: string;
-    content: string;
-}
+export type ExerciseCreatorResponse = Omit<Exercise, "id">;
