@@ -14,8 +14,8 @@ export class GetExerciseList implements ToolProvider {
             id: GetExerciseList.ID,
             name: 'Get Exercise List',
             description: 'Retrieve a list of all exercise names and summarizations.',
-            
-            handler: async (): Promise<{ id:string;exerciseName: string; exerciseSummary: string }[]> => {
+
+            handler: async (): Promise<{ id: string; exerciseName: string; exerciseSummary: string }[]> => {
                 const exercises = this.exerciseService.getExerciseList();
                 return exercises;
             },

@@ -1,6 +1,7 @@
 import { inject, injectable } from '@theia/core/shared/inversify';
 import { ToolProvider, ToolRequest } from '@theia/ai-core';
-import { ExerciseService , Exercise} from "../../exercise-service";
+import { ExerciseService } from "../../exercise-service";
+import {Exercise} from "../../exercise-service/types";
 
 @injectable()
 export class AddExercise implements ToolProvider {
@@ -30,7 +31,7 @@ export class AddExercise implements ToolProvider {
                                 items: {
                                     type: 'object',
                                     properties: {
-                                        filename: { type: 'string' },
+                                        fileName: { type: 'string' },
                                         content: { type: 'string' },
                                     },
                                 },
@@ -40,13 +41,13 @@ export class AddExercise implements ToolProvider {
                                 items: {
                                     type: 'object',
                                     properties: {
-                                        filename: { type: 'string' },
+                                        fileName: { type: 'string' },
                                         content: { type: 'string' },
                                     },
                                 },
                             },
                         },
-                        
+
                     },
                 },
             },
@@ -58,12 +59,13 @@ export class AddExercise implements ToolProvider {
             },
         };
     }
-     /**
+
+    /**
      * Parse the argument string into a structured object.
      * @param arg_string - The argument string to parse.
      * @returns An object containing the exercise details.
      */
-     private parseArgs(arg_string: string): { exercise: Exercise } {
+    private parseArgs(arg_string: string): { exercise: Exercise } {
         return JSON.parse(arg_string);
     }
 }

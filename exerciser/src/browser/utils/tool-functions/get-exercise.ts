@@ -1,6 +1,7 @@
 import { inject, injectable } from '@theia/core/shared/inversify';
 import { ToolProvider, ToolRequest } from '@theia/ai-core';
-import { ExerciseService, Exercise} from "../../exercise-service";
+import { ExerciseService} from "../../exercise-service";
+import {Exercise} from "../../exercise-service/types";
 
 
 @injectable()
@@ -21,14 +22,12 @@ export class GetExercise implements ToolProvider {
                     id: {
                         type: 'string',
                         description: 'The unique ID of the exercise.',
-                    
                     },
                 },
-               
+
             },
             handler: async (arg_string: string): Promise<{ exercise: Exercise }> => {
                 const args = JSON.parse(arg_string) as { id: string };
-                
 
                 if (!args.id) {
                     throw new Error('The "id" parameter is required.');
@@ -41,7 +40,7 @@ export class GetExercise implements ToolProvider {
 
                 return { exercise };
             },
-            
+
         };
     }
     // private parseArgs(arg_string: string): string {

@@ -18,22 +18,11 @@ import { AbstractStreamParsingChatAgent, ChatAgent, SystemMessageDescription } f
 import { AgentSpecificVariables, PromptTemplate, ToolInvocationRegistry,  getTextOfResponse,} from '@theia/ai-core';
 import { inject, injectable } from '@theia/core/shared/inversify';
 import { exerciseConductorTemplate } from "./template";
-import { GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID } from './../utils/tool-functions/function-names';
+import { GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID } from '../utils/tool-functions/function-names';
 import { ChatRequestModelImpl } from '@theia/ai-chat/lib/common';
-import {
-   
-    LanguageModelResponse,
-    
-} from '@theia/ai-core';
+import { LanguageModelResponse } from '@theia/ai-core';
 import { ExerciseService } from '../exercise-service';
-
-
-
-import {
-    ChatResponseContent,
-    HorizontalLayoutChatResponseContentImpl,
-    MarkdownChatResponseContentImpl,
-} from "@theia/ai-chat";
+import { ChatResponseContent, MarkdownChatResponseContentImpl } from "@theia/ai-chat";
 
 @injectable()
 export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
@@ -71,7 +60,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
 
     /**
      * Parses the response text from the LLM to extract the command and parameters.
-     
+
      */
     protected async parseTextResponse(text: string): Promise<{ function: string; parameters?: any }> {
         try {
@@ -89,14 +78,14 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
     protected override async addContentsToResponse(response: LanguageModelResponse, request: ChatRequestModelImpl): Promise<void> {
         const responseAsText = await getTextOfResponse(response);
         const jsonRegex= /(\{[\s\S]*\})/;
-        const jsonMatch = responseAsText.match(jsonRegex);    
+        const jsonMatch = responseAsText.match(jsonRegex);
         if (!jsonMatch) {
             request.response.response.addContent(new MarkdownChatResponseContentImpl(responseAsText));
         }else{
             const jsonString = jsonMatch[1];
             const jsonObj=JSON.parse(jsonString)
-            const beforeJson = responseAsText.slice(0, jsonMatch.index!);
-            const afterJson =responseAsText.slice(jsonMatch.index! + jsonString.length)
+            // const beforeJson = responseAsText.slice(0, jsonMatch.index!);
+            // const afterJson =responseAsText.slice(jsonMatch.index! + jsonString.length)
             const key=Object.keys(jsonObj)[0]
             switch (key){
                 case 'getExerciseList':
@@ -106,13 +95,12 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 default:
                 request.response.response.addContent( new MarkdownChatResponseContentImpl(`Unknown`))
             }
-        }   
-        
-    }   
+        }
+    }
 
     /**
      * Handles the command parsed from the LLM response and calls the appropriate function.
-    
+
      */
     // protected async handleFunctionCall(parsedCommand: { function: string; parameters?: any }): Promise<void> {
     //     switch (parsedCommand.function) {
@@ -124,15 +112,13 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
     //             return new MarkdownChatResponseContentImpl(`Unknown function "${parsedCommand.function}" invoked.`);
     //     }
     // }
-    
+
     /**
          * Handles the `getExerciseList` function.
          * @returns The chatbot response content with the exercise list.
          */
     protected handleGetExerciseList(request: ChatRequestModelImpl,exerciseList:{exerciseId:string, exerciseName:string,exerciseSummarization:string}[]): void {
         try {
-           
-    
             const exerciseMarkdown = exerciseList
                 .map(exercise => `- **${exercise.exerciseName}**: ${exercise.exerciseSummarization}`)
                 .join('\n');
@@ -143,8 +129,8 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             request.response.response.addContent( new MarkdownChatResponseContentImpl('Failed to retrieve exercises. Please try again.'))
         }
     }
-    
-    
+
+
     /**
      * Handles the `getExercise` function.
      * @param parameters - Parameters for the function, including the exercise ID.
@@ -157,19 +143,19 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             if (!exercise) {
                 return new MarkdownChatResponseContentImpl(`Exercise with ID "${parameters.id}" not found.`);
             }
-    
+
             // Format the conductor files as Markdown
             const filesMarkdown = exercise.conductorFiles
-            .map((file, index) => 
-                `   ${index + 1}. **Filename:** ${file.filename}\n      **Content:**\n\`\`\`\n${file.content}\n\`\`\``)
+            .map((file, index) =>
+                `   ${index + 1}. **Filename:** ${file.fileName}\n      **Content:**\n\`\`\`\n${file.content}\n\`\`\``)
             .join('\n\n');
-    
+
             // Create the response message
-            const responseMessage = 
+            const responseMessage =
             `### 1. Exercise Name\n` +
             `   **${exercise.exerciseName}**\n\n` +
             `### 2. Conductor Files\n\n${filesMarkdown}`;
-            
+
             return new MarkdownChatResponseContentImpl(responseMessage);
         } catch (error) {
             console.error('Error while fetching exercise details:', error);

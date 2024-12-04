@@ -1,5 +1,5 @@
 export interface ExerciseFile{
-    filename: string;
+    fileName: string;
     content: string;
 }
 

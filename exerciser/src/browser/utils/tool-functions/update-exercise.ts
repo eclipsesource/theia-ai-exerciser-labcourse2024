@@ -34,7 +34,7 @@ export class UpdateExercise implements ToolProvider {
                                 items: {
                                     type: 'object',
                                     properties: {
-                                        filename: { type: 'string' },
+                                        fileName: { type: 'string' },
                                         content: { type: 'string' },
                                     },
                                 },
@@ -44,7 +44,7 @@ export class UpdateExercise implements ToolProvider {
                                 items: {
                                     type: 'object',
                                     properties: {
-                                        filename: { type: 'string' },
+                                        fileName: { type: 'string' },
                                         content: { type: 'string' },
                                     },
                                 },
@@ -53,12 +53,12 @@ export class UpdateExercise implements ToolProvider {
                         required: ['exercise_name'],
                     },
                 },
-               
+
             },
             handler: async (argString: string): Promise<string> => {
                 const { exercise_id, updatedExercise } = JSON.parse(argString);
-                return  this.exerciseService.updateExercise(exercise_id, updatedExercise) 
-                ? `Exercise "${updatedExercise.exercise_name}" updated successfully.` 
+                return  this.exerciseService.updateExercise(exercise_id, updatedExercise)
+                ? `Exercise "${updatedExercise.exercise_name}" updated successfully.`
                 : `Failed to update exercise with ID "${exercise_id}".`;
             },
         };
