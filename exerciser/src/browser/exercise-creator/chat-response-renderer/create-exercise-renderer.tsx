@@ -20,7 +20,7 @@ import {ChatResponsePartRenderer} from "@theia/ai-chat-ui/lib/browser/chat-respo
 import {ChatResponseContent} from "@theia/ai-chat";
 import * as React from '@theia/core/shared/react';
 import {ExerciseCreatorResponse} from "../types";
-import {FileList} from "./FileList";
+import {ExerciseList} from "./exercise-list";
 
 export interface CreateExerciseChatResponseContent
     extends ChatResponseContent {
@@ -73,7 +73,7 @@ export class CreateExerciseRenderer implements ChatResponsePartRenderer<CreateEx
     render(response: CreateExerciseChatResponseContent): React.ReactNode {
         return (
             <div style={{display: "flex", flexDirection: "column"}}>
-                <FileList files={response.content.exerciseFiles}/>
+                <ExerciseList files={response.content.exerciseFiles}/>
             </div>
         )
     }

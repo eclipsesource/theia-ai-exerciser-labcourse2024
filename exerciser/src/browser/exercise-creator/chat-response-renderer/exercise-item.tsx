@@ -1,11 +1,11 @@
 import * as React from '@theia/core/shared/react';
-import {fileToBeGenerated} from "../types";
+import {ExerciseFile} from "../../exercise-service/types";
 
 export type Props = {
-    file: fileToBeGenerated
+    file: ExerciseFile
 }
 
-export const FileItem: React.FC<Props> = ({file}) => {
+export const ExerciseItem: React.FC<Props> = ({file}) => {
     const [isOpen, setIsOpen] = React.useState(false)
 
     const showFileContent = () => {
@@ -15,15 +15,23 @@ export const FileItem: React.FC<Props> = ({file}) => {
     return (
         <div style={{
             display: "flex",
-            flexDirection: "column"
+            flexDirection: "column",
+            flexGrow: 1,
+            border: "solid",
+            borderRadius: 4,
+            padding: 10
         }}>
             <div style={{
                 display: "flex",
                 flexDirection: "row",
                 justifyContent: "space-between",
             }}>
-                <p>{file.fileName}</p>
-                <button onClick={showFileContent}>{isOpen ? "collapse" : "expand"}</button>
+                <span>{file.fileName}</span>
+                {isOpen ? (
+                    <span className="codicon codicon-arrow-up" title="collapse" onClick={showFileContent}/>
+                ) : (
+                    <span className="codicon codicon-arrow-down" title="expand" onClick={showFileContent}/>
+                )}
             </div>
             {isOpen && (
                 <div>
