@@ -17,7 +17,6 @@ import {bindViewContribution, FrontendApplicationContribution, WidgetFactory} fr
 import {WidgetContribution} from "./widget/widget-contribution";
 import {WidgetWidget} from "./widget/widget-widget";
 
-import './widget/style/index.css';
 
 export default new ContainerModule(bind => {
     bind(ExerciseCreatorChatAgent).toSelf().inSingletonScope;

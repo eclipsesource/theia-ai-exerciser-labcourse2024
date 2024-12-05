@@ -6,6 +6,10 @@ import {Exercise, ExerciseOverview} from "./types";
 export class ExerciseService {
     private exercises: Exercise[] = [];
 
+    get allExercises(): Exercise[] {
+        return this.exercises;
+    }
+
     @inject(ILogger)
     protected readonly logger: ILogger;
 

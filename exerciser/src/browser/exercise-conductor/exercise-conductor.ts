@@ -15,7 +15,7 @@
 // *****************************************************************************
 
 import { AbstractStreamParsingChatAgent, ChatAgent, SystemMessageDescription } from '@theia/ai-chat/lib/common';
-import { AgentSpecificVariables, PromptTemplate, ToolInvocationRegistry,  getTextOfResponse,} from '@theia/ai-core';
+import { AgentSpecificVariables, PromptTemplate, ToolInvocationRegistry, getTextOfResponse, } from '@theia/ai-core';
 import { inject, injectable } from '@theia/core/shared/inversify';
 import { exerciseConductorTemplate } from "./template";
 import { GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID } from '../utils/tool-functions/function-names';
@@ -23,12 +23,13 @@ import { ChatRequestModelImpl } from '@theia/ai-chat/lib/common';
 import { LanguageModelResponse } from '@theia/ai-core';
 import { ExerciseService } from '../exercise-service';
 import { ChatResponseContent, MarkdownChatResponseContentImpl } from "@theia/ai-chat";
-import { Exercise,ExerciseOverview } from '../exercise-service/types';
-import { CreateExerciseChatResponseContentImpl } from '../exercise-creator/chat-response-renderer/create-exercise-renderer';
+import { Exercise, ExerciseOverview } from '../exercise-service/types';
+import { ExerciseChatResponseContentImpl } from '../chat-response-renderer/exercise-renderer';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { CommandChatResponseContentImpl } from '@theia/ai-chat';
-import {CustomCallback} from '@theia/ai-chat/lib/common';
+import { CustomCallback } from '@theia/ai-chat/lib/common';
+import {ExerciseChatResponse} from "../exercise-creator/types";
 @injectable()
 export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
     name: string;
@@ -62,10 +63,16 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
         // Define the prompt template and variables specific to coding exercises
         this.promptTemplates = [exerciseConductorTemplate];
         this.variables = [];
-        this.agentSpecificVariables = [];
+        this.agentSpecificVariables = [
+            {
+                name: 'exercisesInService',
+                description: 'The list of exercises available for the user to choose from.',
+                usedInPrompt: true,
+            },
+        ];
 
         // Register functions relevant for coding exercises, including file access and code execution
-        this.functions = [ GET_EXERCISE_LIST_FUNCTION_ID,  GET_EXERCISE_FUNCTION_ID];
+        this.functions = [GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID];
     }
 
     /**
@@ -93,21 +100,31 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
         const jsonMatch = responseAsText.match(/(\{[\s\S]*\})/);
         if (!jsonMatch) {
             request.response.response.addContent(new MarkdownChatResponseContentImpl(responseAsText));
-        }else{
+        } else {
             const jsonString = jsonMatch[1];
             this.logger.info('JSON string:', jsonString);
-            const jsonObj=JSON.parse(jsonString)
+            let jsonObj;
+            try{
+                jsonObj = JSON.parse(jsonString)
+            }catch(error){
+                this.logger.error('Error parsing JSON:', error);
+                request.response.response.addContent(new MarkdownChatResponseContentImpl(responseAsText))
+                return;
+            }
+            
             this.logger.info('JSON object:', jsonObj);
             // const beforeJson = responseAsText.slice(0, jsonMatch.index!);
             // const afterJson =responseAsText.slice(jsonMatch.index! + jsonString.length)
-            const key=Object.keys(jsonObj)[0]
-            switch (key){
+            const key = Object.keys(jsonObj)[0]
+            switch (key) {
                 case 'exerciseList':
-                this.handleGetExerciseList(request,jsonObj.exerciseList);
+                    this.handleGetExerciseList(request, jsonObj.exerciseList);
+                    break;
                 case 'exerciseContent':
-                this.handleGetExercise(request,jsonObj.exerciseContent);
+                    this.handleGetExercise(request, jsonObj.exerciseContent);
+                    break;
                 default:
-                request.response.response.addContents(this.parseContents(responseAsText) )
+                    request.response.response.addContent(new MarkdownChatResponseContentImpl(responseAsText));
             }
         }
     }
@@ -131,16 +148,16 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
          * Handles the `getExerciseList` function.
          * @returns The chatbot response content with the exercise list.
          */
-    protected handleGetExerciseList(request: ChatRequestModelImpl,exerciseList:ExerciseOverview[]): void {
+    protected handleGetExerciseList(request: ChatRequestModelImpl, exerciseList: ExerciseOverview[]): void {
         try {
             const exerciseMarkdown = exerciseList
-                .map(exercise => `- **${exercise.exerciseName}**: ${exercise.exerciseSummarization}`)
+                .map(exercise => `- **${exercise.exerciseName}**: ${exercise.exerciseSummarization}'`)
                 .join('\n');
             const responseMessage = `Here are the available exercises:\n\n${exerciseMarkdown}`;
-            request.response.response.addContent( new MarkdownChatResponseContentImpl(responseMessage))
+            request.response.response.addContent(new MarkdownChatResponseContentImpl(responseMessage))
         } catch (error) {
             console.error('Error fetching exercises:', error);
-            request.response.response.addContent( new MarkdownChatResponseContentImpl('Failed to retrieve exercises. Please try again.'))
+            request.response.response.addContent(new MarkdownChatResponseContentImpl('Failed to retrieve exercises. Please try again.'))
         }
     }
 
@@ -150,26 +167,28 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
      * @param parameters - Parameters for the function, including the exercise ID.
      * @returns The chatbot response content with the exercise details.
      */
-    protected handleGetExercise(request: ChatRequestModelImpl,exercise:Exercise): void {
+    protected handleGetExercise(request: ChatRequestModelImpl, exercise: Exercise): void {
         try {
-            
+
 
             if (!exercise) {
-                request.response.response.addContent( new MarkdownChatResponseContentImpl(`Exercise not found.`))
-            }else{
+                request.response.response.addContent(new MarkdownChatResponseContentImpl(`Exercise not found.`))
+            } else {
 
-           request.response.response.addContent( new MarkdownChatResponseContentImpl(`${exercise.exerciseSummarization}.`))
-           request.response.response.addContent( new MarkdownChatResponseContentImpl(`${exercise.fileListSummarization}.`))
-           const exerciseContentChatResponse = new CreateExerciseChatResponseContentImpl(exercise);
-            request.response.response.addContent(exerciseContentChatResponse);
-            request.response.response.addContent(this.fileGenerator(exercise));
-            // Format the conductor files as Markdown
-            request.response.response.addContent( new MarkdownChatResponseContentImpl(`Click the button to create the exercise in your workspace`))
+                request.response.response.addContent(new MarkdownChatResponseContentImpl(`${exercise.exerciseSummarization}.`))
+                request.response.response.addContent(new MarkdownChatResponseContentImpl(`${exercise.fileListSummarization}.`))
+
+                const exerciseContentChatResponse : ExerciseChatResponse = {...exercise, renderSwitch: "conductorFiles"};
+                // new ExerciseChatResponseContentImpl(exercise, renderSwitch:'conductorFiles');
+                request.response.response.addContent(new ExerciseChatResponseContentImpl(exerciseContentChatResponse));
+                request.response.response.addContent(this.fileGenerator(exercise));
+                // Format the conductor files as Markdown
+                request.response.response.addContent(new MarkdownChatResponseContentImpl(`Click the button to create the exercise in your workspace`))
 
             }
         } catch (error) {
             console.error('Error while fetching exercise details:', error);
-            
+
         }
     }
 
@@ -183,37 +202,38 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
     //     return this.handleFunctionCall(parsedCommand);
     // }
 
-    protected  fileGenerator(exercise:Exercise): ChatResponseContent {
+    protected fileGenerator(exercise: Exercise): ChatResponseContent {
         const customCallback: CustomCallback = {
             label: 'Create Exercise',
             callback: async () => {
-            const wsRoots = await this.workspaceService.roots;
+                const wsRoots = await this.workspaceService.roots;
 
-            if (wsRoots.length === 0) {
-                console.error(`No workspace found to create files.`) ;
+                if (wsRoots.length === 0) {
+                    console.error(`No workspace found to create files.`);
+                }
+
+                // Use the first workspace root as the base directory
+                const rootUri = wsRoots[0].resource;
+
+                // Create the exercise folder
+                const exerciseFolderUri = rootUri.resolve(exercise.exerciseName);
+                await this.fileService.createFolder(exerciseFolderUri);
+
+                // Iterate over conductorFiles and create files in the exercise folder
+                exercise.conductorFiles.forEach(async (conductorFile) => {
+                    const fileUri = exerciseFolderUri.resolve(conductorFile.fileName);
+                    await this.fileService.write(fileUri, conductorFile.content);
+                });
             }
-        
-            // Use the first workspace root as the base directory
-            const rootUri = wsRoots[0].resource;
-        
-            // Create the exercise folder
-            const exerciseFolderUri = rootUri.resolve(exercise.exerciseName);
-            await this.fileService.createFolder(exerciseFolderUri);
-        
-            // Iterate over conductorFiles and create files in the exercise folder
-            exercise.conductorFiles.forEach(async (conductorFile) => {
-                const fileUri = exerciseFolderUri.resolve(conductorFile.fileName);
-                await this.fileService.write(fileUri, conductorFile.content);
-            });
-         }
-           
+
         };
-       
-        return new CommandChatResponseContentImpl({id: 'custom-command'}, customCallback);     
+
+        return new CommandChatResponseContentImpl({ id: 'custom-command' }, customCallback);
     }
 
     protected override async getSystemMessageDescription(): Promise<SystemMessageDescription | undefined> {
-        const resolvedPrompt = await this.promptService.getPrompt(exerciseConductorTemplate.id);
+        const exercises = JSON.stringify(this.exerciseService.allExercises)
+        const resolvedPrompt = await this.promptService.getPrompt(exerciseConductorTemplate.id, { exercisesInService: exercises });
         return resolvedPrompt ? SystemMessageDescription.fromResolvedPromptTemplate(resolvedPrompt) : undefined;
     }
 }
