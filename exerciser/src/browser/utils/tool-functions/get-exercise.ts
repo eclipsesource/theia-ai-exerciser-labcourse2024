@@ -19,32 +19,24 @@ export class GetExercise implements ToolProvider {
             parameters: {
                 type: 'object',
                 properties: {
-                    id: {
+                    exerciseId: {
                         type: 'string',
                         description: 'The unique ID of the exercise.',
                     },
                 },
 
             },
-            handler: async (arg_string: string): Promise<{ exercise: Exercise }> => {
-                const args = JSON.parse(arg_string) as { id: string };
+            handler: async (arg_string: string): Promise<Exercise|null> => {
+                const exerciseId = this.parseArgs(arg_string);
 
-                if (!args.id) {
-                    throw new Error('The "id" parameter is required.');
-                }
-
-                const exercise = this.exerciseService.getExercise(args.id);
-                if (!exercise) {
-                    throw new Error(`Exercise with ID "${args.id}" not found.`);
-                }
-
-                return { exercise };
+                const exercise = this.exerciseService.getExercise(exerciseId);
+    
+                return  exercise ;
             },
-
         };
     }
-    // private parseArgs(arg_string: string): string {
-    //     const result = JSON.parse(arg_string);
-    //     return result.exercise_id;
-    // }
+    private parseArgs(arg_string: string): string {
+        const result = JSON.parse(arg_string);
+        return result.exerciseId;
+    }
 }
