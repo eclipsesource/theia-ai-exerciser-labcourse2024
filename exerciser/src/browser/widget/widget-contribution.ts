@@ -1,14 +1,37 @@
-import { injectable } from '@theia/core/shared/inversify';
+import { injectable, inject } from '@theia/core/shared/inversify';
 import { MenuModelRegistry } from '@theia/core';
 import { WidgetWidget } from './widget-widget';
 import { AbstractViewContribution } from '@theia/core/lib/browser';
 import { Command, CommandRegistry } from '@theia/core/lib/common/command';
+import { ExerciseService } from '../exercise-service';
+import { ExerciseCreatorChatAgent } from '../exercise-creator';
+import { ExerciseConductorAgent } from '../exercise-conductor/exercise-conductor';
 
 export const WidgetCommand: Command = { id: 'widget:command' };
+
+export const CreateFilesCommand: Command = {
+    id: 'exerciseCreator:createFiles',
+    label: 'Create Files',
+};
+
+export const GetExerciseListCommand: Command = {
+    id: 'exerciseConductor:getExerciseList',
+    label: 'Get Exercise List',
+};
+
 
 @injectable()
 export class WidgetContribution extends AbstractViewContribution<WidgetWidget> {
 
+    @inject(ExerciseService)
+    protected readonly exerciseService: ExerciseService;
+
+    @inject(ExerciseCreatorChatAgent)
+    protected readonly exerciseCreatorAgent: ExerciseCreatorChatAgent;
+
+    @inject(ExerciseConductorAgent)
+    protected readonly exerciseConductorAgent: ExerciseConductorAgent;
+    
     /**
      * `AbstractViewContribution` handles the creation and registering
      *  of the widget including commands, menus, and keybindings.
@@ -25,6 +48,8 @@ export class WidgetContribution extends AbstractViewContribution<WidgetWidget> {
             toggleCommandId: WidgetCommand.id
         });
     }
+
+    
 
     /**
      * Example command registration to open the widget from the menu, and quick-open.
@@ -48,6 +73,36 @@ export class WidgetContribution extends AbstractViewContribution<WidgetWidget> {
         commands.registerCommand(WidgetCommand, {
             execute: () => super.openView({ activate: false, reveal: true })
         });
+
+        commands.registerCommand(CreateFilesCommand, {
+            execute: async (args: { renderSwitch: 'exerciseFiles' | 'conductorFiles' }) => {
+                const { renderSwitch } = args;
+                console.log(`Creating files with renderSwitch: ${renderSwitch}`);
+        
+                this.exerciseCreatorAgent.filesToBeGenerated({
+                    exerciseFiles: [], 
+                    renderSwitch: renderSwitch, 
+                    fileListSummarization: '', 
+                    conductorFiles: [], 
+                    exerciseId: '', 
+                    exerciseName: '', 
+                    exerciseSummarization: ''
+                });
+            }
+        });
+        
+
+    // Register the command for fetching the exercise list
+    commands.registerCommand(GetExerciseListCommand, {
+        execute: async () => {
+            const exerciseList = await this.exerciseConductorAgent.exerciseService.allExercises;
+            console.log('Exercise List:', exerciseList);
+
+        }
+    });
+
+    super.registerCommands(commands);
+
     }
 
     /**

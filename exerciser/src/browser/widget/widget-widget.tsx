@@ -2,7 +2,7 @@ import * as React from 'react';
 import { injectable, postConstruct, inject } from '@theia/core/shared/inversify';
 import { AlertMessage } from '@theia/core/lib/browser/widgets/alert-message';
 import { ReactWidget } from '@theia/core/lib/browser/widgets/react-widget';
-import { MessageService } from '@theia/core';
+import { MessageService, CommandService } from '@theia/core';
 import { Message } from '@theia/core/lib/browser';
 
 @injectable()
@@ -13,6 +13,9 @@ export class WidgetWidget extends ReactWidget {
 
     @inject(MessageService)
     protected readonly messageService!: MessageService;
+
+    @inject(CommandService)
+    protected readonly commandService: CommandService;
 
     @postConstruct()
     protected init(): void {
@@ -34,7 +37,45 @@ export class WidgetWidget extends ReactWidget {
         return <div id='widget-container'>
             <AlertMessage type='INFO' header={header} />
             <button id='displayMessageButton' className='theia-button secondary' title='Display Message' onClick={_a => this.displayMessage()}>Display Message</button>
+
+            <h2>Exercise Management</h2>
+            
+            <button
+                id="createExerciseFilesButton"
+                className="theia-button secondary"
+                onClick={() =>
+                    this.commandService.executeCommand('exerciseCreator:createFiles', {
+                        renderSwitch: 'exerciseFiles',
+                    })
+                }
+            >
+                Create Exercise Files
+            </button>
+
+            <button
+                id="createConductorFilesButton"
+                className="theia-button secondary"
+                onClick={() =>
+                    this.commandService.executeCommand('exerciseCreator:createFiles', {
+                        renderSwitch: 'conductorFiles',
+                    })
+                }
+            >
+                Create Conductor Files
+            </button>
+
+            <button
+                id="getExerciseListButton"
+                className="theia-button secondary"
+                onClick={() =>
+                    this.commandService.executeCommand('exerciseConductor:getExerciseList')
+                }
+            >
+                Get Exercise List
+            </button>
         </div>
+        
+        
     }
 
     protected displayMessage(): void {

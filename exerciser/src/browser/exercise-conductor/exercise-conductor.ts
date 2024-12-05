@@ -40,7 +40,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
     readonly functions: string[];
 
     @inject(ExerciseService)
-    protected readonly exerciseService: ExerciseService;
+    readonly exerciseService: ExerciseService;
     @inject(ToolInvocationRegistry)
     protected toolInvocationRegistry: ToolInvocationRegistry;
 
