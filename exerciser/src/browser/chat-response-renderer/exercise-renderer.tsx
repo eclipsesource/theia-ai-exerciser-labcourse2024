@@ -19,24 +19,24 @@ import {injectable} from "@theia/core/shared/inversify";
 import {ChatResponsePartRenderer} from "@theia/ai-chat-ui/lib/browser/chat-response-part-renderer";
 import {ChatResponseContent} from "@theia/ai-chat";
 import * as React from '@theia/core/shared/react';
-import {ExerciseCreatorResponse} from "../types";
+import {ExerciseChatResponse} from "../exercise-creator/types";
 import {ExerciseList} from "./exercise-list";
 
-export interface CreateExerciseChatResponseContent
+export interface ExerciseChatResponseContent
     extends ChatResponseContent {
-    kind: 'createExerciseFile';
-    content: ExerciseCreatorResponse;
+    kind: 'exercise';
+    content: ExerciseChatResponse;
 }
 
-export class CreateExerciseChatResponseContentImpl implements CreateExerciseChatResponseContent {
-    readonly kind = 'createExerciseFile';
-    protected _content: ExerciseCreatorResponse;
+export class ExerciseChatResponseContentImpl implements ExerciseChatResponseContent {
+    readonly kind = 'exercise';
+    protected _content: ExerciseChatResponse;
 
-    constructor(content: ExerciseCreatorResponse) {
+    constructor(content: ExerciseChatResponse) {
         this._content = content;
     }
 
-    get content(): ExerciseCreatorResponse {
+    get content(): ExerciseChatResponse {
         return this._content;
     }
 
@@ -44,36 +44,37 @@ export class CreateExerciseChatResponseContentImpl implements CreateExerciseChat
         return JSON.stringify(this._content);
     }
 
-    merge(nextChatResponseContent: CreateExerciseChatResponseContent): boolean {
+    merge(nextChatResponseContent: ExerciseChatResponseContent): boolean {
         this._content = {...this._content, ...nextChatResponseContent.content};
         return true;
     }
 }
 
-export namespace CreateExerciseChatResponseContent {
-    export function is(obj: unknown): obj is CreateExerciseChatResponseContent {
+export namespace ExerciseChatResponseContent {
+    export function is(obj: unknown): obj is ExerciseChatResponseContent {
         return (
             ChatResponseContent.is(obj) &&
-            obj.kind === 'createExerciseFile' &&
+            obj.kind === 'exercise' &&
             'content' in obj &&
-            typeof (obj as { content: ExerciseCreatorResponse }).content === "object"
+            typeof (obj as { content: ExerciseChatResponse }).content === "object"
         );
     }
 }
 
 @injectable()
-export class CreateExerciseRenderer implements ChatResponsePartRenderer<CreateExerciseChatResponseContent> {
+export class ExerciseRenderer implements ChatResponsePartRenderer<ExerciseChatResponseContent> {
     canHandle(response: ChatResponseContent): number {
-        if (CreateExerciseChatResponseContent.is(response)) {
+        if (ExerciseChatResponseContent.is(response)) {
             return 10;
         }
         return -1;
     }
 
-    render(response: CreateExerciseChatResponseContent): React.ReactNode {
+    render(response: ExerciseChatResponseContent): React.ReactNode {
+        const files = response.content.renderSwitch === "exerciseFiles" ? response.content.exerciseFiles:response.content.conductorFiles;
         return (
             <div style={{display: "flex", flexDirection: "column"}}>
-                <ExerciseList files={response.content.exerciseFiles}/>
+                <ExerciseList files={files}/>
             </div>
         )
     }

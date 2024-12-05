@@ -35,11 +35,11 @@ import {
     CustomCallback,
     MarkdownChatResponseContentImpl
 } from "@theia/ai-chat";
-import {ExerciseCreatorResponse} from "./types";
 import {
-    CreateExerciseChatResponseContentImpl
-} from "./chat-response-renderer/create-exercise-renderer";
+    ExerciseChatResponseContentImpl
+} from "../chat-response-renderer/exercise-renderer";
 import {ExerciseService} from "../exercise-service";
+import {ExerciseChatResponse} from "./types";
 
 @injectable()
 export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
@@ -87,8 +87,8 @@ export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent imp
             const beforeJson = responseText.slice(0, jsonMatch.index!);
             request.response.response.addContent(new MarkdownChatResponseContentImpl(beforeJson));
             try {
-                const exerciseCreatorResponse: ExerciseCreatorResponse = JSON.parse(jsonString);
-                const exerciseContentChatResponse = new CreateExerciseChatResponseContentImpl(exerciseCreatorResponse);
+                const exerciseCreatorResponse: ExerciseChatResponse = {...JSON.parse(jsonString), renderSwitch: "exerciseFiles"};
+                const exerciseContentChatResponse = new ExerciseChatResponseContentImpl(exerciseCreatorResponse);
                 const generateFileChatResponse = this.filesToBeGenerated(exerciseCreatorResponse);
                 request.response.response.addContent(exerciseContentChatResponse);
                 request.response.response.addContent(generateFileChatResponse);
@@ -100,7 +100,7 @@ export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent imp
         }
     }
 
-    filesToBeGenerated(exerciseCreatorResponse: ExerciseCreatorResponse) {
+    filesToBeGenerated(exerciseCreatorResponse: ExerciseChatResponse) {
         const customCallback: CustomCallback = {
             label: 'Create Exercise',
             callback: async () => {

@@ -1,3 +1,3 @@
 import {Exercise} from "../exercise-service/types";
 
-export type ExerciseCreatorResponse = Omit<Exercise, "id">;
+export type ExerciseChatResponse = Omit<Exercise, "id"> & {renderSwitch: "exerciseFiles" | "conductorFiles"};

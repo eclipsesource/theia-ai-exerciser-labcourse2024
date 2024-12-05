@@ -1,5 +1,5 @@
 import * as React from '@theia/core/shared/react';
-import {ExerciseFile} from "../../exercise-service/types";
+import {ExerciseFile} from "../exercise-service/types";
 
 export type Props = {
     file: ExerciseFile

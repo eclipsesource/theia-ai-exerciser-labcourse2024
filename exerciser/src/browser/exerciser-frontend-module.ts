@@ -12,7 +12,7 @@ import { GetExerciseList } from './utils/tool-functions/get-exercise-list';
 import { GetExercise } from './utils/tool-functions/get-exercise';
 import { ExerciseService } from './exercise-service';
 import {ChatResponsePartRenderer} from "@theia/ai-chat-ui/lib/browser/chat-response-part-renderer";
-import {CreateExerciseRenderer} from "./exercise-creator/chat-response-renderer/create-exercise-renderer";
+import {ExerciseRenderer} from "./chat-response-renderer/exercise-renderer";
 
 export default new ContainerModule(bind => {
     bind(ExerciseCreatorChatAgent).toSelf().inSingletonScope;
@@ -35,6 +35,6 @@ export default new ContainerModule(bind => {
 
     bind(ExerciseService).toSelf().inSingletonScope();
 
-    bind(ChatResponsePartRenderer).to(CreateExerciseRenderer).inSingletonScope();
+    bind(ChatResponsePartRenderer).to(ExerciseRenderer).inSingletonScope();
 });
 
