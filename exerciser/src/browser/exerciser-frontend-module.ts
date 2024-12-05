@@ -13,6 +13,11 @@ import { GetExercise } from './utils/tool-functions/get-exercise';
 import { ExerciseService } from './exercise-service';
 import {ChatResponsePartRenderer} from "@theia/ai-chat-ui/lib/browser/chat-response-part-renderer";
 import {ExerciseRenderer} from "./chat-response-renderer/exercise-renderer";
+import {bindViewContribution, FrontendApplicationContribution, WidgetFactory} from "@theia/core/lib/browser";
+import {WidgetContribution} from "./widget/widget-contribution";
+import {WidgetWidget} from "./widget/widget-widget";
+
+import './widget/style/index.css';
 
 export default new ContainerModule(bind => {
     bind(ExerciseCreatorChatAgent).toSelf().inSingletonScope;
@@ -36,5 +41,13 @@ export default new ContainerModule(bind => {
     bind(ExerciseService).toSelf().inSingletonScope();
 
     bind(ChatResponsePartRenderer).to(ExerciseRenderer).inSingletonScope();
+
+    bindViewContribution(bind, WidgetContribution);
+    bind(FrontendApplicationContribution).toService(WidgetContribution);
+    bind(WidgetWidget).toSelf();
+    bind(WidgetFactory).toDynamicValue(ctx => ({
+        id: WidgetWidget.ID,
+        createWidget: () => ctx.container.get<WidgetWidget>(WidgetWidget)
+    })).inSingletonScope();
 });
 
