@@ -4,4 +4,25 @@
     font-weight: 400;
     padding: 10px;
     text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#widget-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+
+#getExerciseListButton {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    background-color: #007acc;
+    color: #fff;
+    border: none;
+    text-align: center;
+    display: block;
+    margin: 20px auto 0;
 }

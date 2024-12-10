@@ -5,6 +5,7 @@ import { MessageService, CommandService } from '@theia/core';
 import { Message } from '@theia/core/lib/browser';
 import { ExerciseService } from "../exercise-service";
 import { ExerciseOverview } from '../exercise-service/types';
+import { ExerciseList } from '../chat-response-renderer/exercise-list';
 
 @injectable()
 export class WidgetWidget extends ReactWidget {
@@ -51,11 +52,16 @@ export class WidgetWidget extends ReactWidget {
     
     render(): React.ReactElement {
         return <div id='widget-container'>
-            {this.exerciseList.map(exercise => (
-                <div key={exercise.exerciseId}>
-                    {exercise.exerciseName}
-                </div>
-            ))}
+    
+            <h2>Exercise List</h2>
+
+            <ExerciseList
+                    files={this.exerciseList.map((exercise) => ({
+                        fileName: exercise.exerciseName,
+                        content: exercise.exerciseSummarization || 'No description available',
+                    }))}
+                />
+
             <button
                 id="getExerciseListButton"
                 className="theia-button secondary"
