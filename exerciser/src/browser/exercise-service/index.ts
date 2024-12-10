@@ -1,11 +1,15 @@
 import {inject, injectable} from '@theia/core/shared/inversify';
 import {ILogger} from "@theia/core";
 import {Exercise, ExerciseOverview} from "./types";
+import { Emitter } from '@theia/core/lib/common/event';
+
 
 @injectable()
 export class ExerciseService {
-    private exercises: Exercise[] = [];
-
+    exercises: Exercise[] = [];
+    protected readonly onExerciseChangeEmitter = new Emitter<Exercise[]>();
+    onExerciseChange = this.onExerciseChangeEmitter.event;
+    
     get allExercises(): Exercise[] {
         return this.exercises;
     }
@@ -20,6 +24,7 @@ export class ExerciseService {
      */
     addExercise(exercise: Exercise): boolean {
         this.exercises.push(exercise);
+        this.onExerciseChangeEmitter.fire(this.exercises);
         this.logger.info(`Exercise added: ${exercise.exerciseName}`);
         return true;
     }

@@ -91,9 +91,8 @@ export class WidgetContribution extends AbstractViewContribution<WidgetWidget> {
 
         commands.registerCommand(GetExerciseListCommand, {
             execute: async () => {
-                const exerciseList = await this.exerciseConductorAgent.exerciseService.allExercises;
-                console.log('Exercise List:', exerciseList);
-
+                const exerciseList = await this.exerciseService.getExerciseList();
+                console.log('Exercise List:', exerciseList);  
             }
         });
 

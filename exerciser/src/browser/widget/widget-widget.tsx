@@ -3,6 +3,8 @@ import { injectable, postConstruct, inject } from '@theia/core/shared/inversify'
 import { ReactWidget } from '@theia/core/lib/browser/widgets/react-widget';
 import { MessageService, CommandService } from '@theia/core';
 import { Message } from '@theia/core/lib/browser';
+import { ExerciseService } from "../exercise-service";
+import { ExerciseOverview } from '../exercise-service/types';
 
 @injectable()
 export class WidgetWidget extends ReactWidget {
@@ -16,6 +18,11 @@ export class WidgetWidget extends ReactWidget {
     @inject(CommandService)
     protected readonly commandService: CommandService;
 
+    @inject(ExerciseService)
+    protected readonly exerciseService: ExerciseService;
+
+    private exerciseList: ExerciseOverview[] = []
+
     @postConstruct()
     protected init(): void {
         this.doInit()
@@ -28,38 +35,32 @@ export class WidgetWidget extends ReactWidget {
         this.title.closable = true;
         this.title.iconClass = 'fa fa-window-maximize'; // example widget icon.
         this.update();
+        this.getExerciseList();
+        this.toDispose.push(
+            this.exerciseService.onExerciseChange(event => {
+                this.exerciseList = event;
+                this.update();
+            })
+        )
     }
-
+    
+    getExerciseList(): void {
+        this.exerciseList = this.exerciseService.getExerciseList();
+        this.update(); // Trigger a re-render of the widget
+    }
+    
     render(): React.ReactElement {
         return <div id='widget-container'>
-            <h2>Exercise Management</h2>
-            <button
-                id="createExerciseFilesButton"
-                className="theia-button secondary"
-                onClick={() =>
-                    this.commandService.executeCommand('exerciseCreator:createFiles', {
-                        renderSwitch: 'exerciseFiles',
-                    })
-                }
-            >
-                Create Exercise Files
-            </button>
-            <button
-                id="createConductorFilesButton"
-                className="theia-button secondary"
-                onClick={() =>
-                    this.commandService.executeCommand('exerciseCreator:createFiles', {
-                        renderSwitch: 'conductorFiles',
-                    })
-                }
-            >
-                Create Conductor Files
-            </button>
+            {this.exerciseList.map(exercise => (
+                <div key={exercise.exerciseId}>
+                    {exercise.exerciseName}
+                </div>
+            ))}
             <button
                 id="getExerciseListButton"
                 className="theia-button secondary"
                 onClick={() =>
-                    this.commandService.executeCommand('exerciseConductor:getExerciseList')
+                    this.getExerciseList()
                 }
             >
                 Get Exercise List
@@ -78,5 +79,4 @@ export class WidgetWidget extends ReactWidget {
             htmlElement.focus();
         }
     }
-
 }
