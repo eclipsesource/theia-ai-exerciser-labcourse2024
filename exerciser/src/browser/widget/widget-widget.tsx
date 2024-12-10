@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { injectable, postConstruct, inject } from '@theia/core/shared/inversify';
-import { AlertMessage } from '@theia/core/lib/browser/widgets/alert-message';
 import { ReactWidget } from '@theia/core/lib/browser/widgets/react-widget';
 import { MessageService, CommandService } from '@theia/core';
 import { Message } from '@theia/core/lib/browser';
@@ -8,8 +7,8 @@ import { Message } from '@theia/core/lib/browser';
 @injectable()
 export class WidgetWidget extends ReactWidget {
 
-    static readonly ID = 'widget:widget';
-    static readonly LABEL = 'Widget Widget';
+    static readonly ID = 'widget:exerciser';
+    static readonly LABEL = 'Exerciser';
 
     @inject(MessageService)
     protected readonly messageService!: MessageService;
@@ -32,14 +31,8 @@ export class WidgetWidget extends ReactWidget {
     }
 
     render(): React.ReactElement {
-        const header = `This is a sample widget which simply calls the messageService
-        in order to display an info message to end users.`;
         return <div id='widget-container'>
-            <AlertMessage type='INFO' header={header} />
-            <button id='displayMessageButton' className='theia-button secondary' title='Display Message' onClick={_a => this.displayMessage()}>Display Message</button>
-
             <h2>Exercise Management</h2>
-            
             <button
                 id="createExerciseFilesButton"
                 className="theia-button secondary"
@@ -51,7 +44,6 @@ export class WidgetWidget extends ReactWidget {
             >
                 Create Exercise Files
             </button>
-
             <button
                 id="createConductorFilesButton"
                 className="theia-button secondary"
@@ -63,7 +55,6 @@ export class WidgetWidget extends ReactWidget {
             >
                 Create Conductor Files
             </button>
-
             <button
                 id="getExerciseListButton"
                 className="theia-button secondary"
@@ -74,8 +65,6 @@ export class WidgetWidget extends ReactWidget {
                 Get Exercise List
             </button>
         </div>
-        
-        
     }
 
     protected displayMessage(): void {

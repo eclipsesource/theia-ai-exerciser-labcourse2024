@@ -31,14 +31,14 @@ export class WidgetContribution extends AbstractViewContribution<WidgetWidget> {
 
     @inject(ExerciseConductorAgent)
     protected readonly exerciseConductorAgent: ExerciseConductorAgent;
-    
+
     /**
      * `AbstractViewContribution` handles the creation and registering
      *  of the widget including commands, menus, and keybindings.
-     * 
-     * We can pass `defaultWidgetOptions` which define widget properties such as 
+     *
+     * We can pass `defaultWidgetOptions` which define widget properties such as
      * its location `area` (`main`, `left`, `right`, `bottom`), `mode`, and `ref`.
-     * 
+     *
      */
     constructor() {
         super({
@@ -49,8 +49,6 @@ export class WidgetContribution extends AbstractViewContribution<WidgetWidget> {
         });
     }
 
-    
-
     /**
      * Example command registration to open the widget from the menu, and quick-open.
      * For a simpler use case, it is possible to simply call:
@@ -58,9 +56,9 @@ export class WidgetContribution extends AbstractViewContribution<WidgetWidget> {
         super.registerCommands(commands)
      ```
      *
-     * For more flexibility, we can pass `OpenViewArguments` which define 
+     * For more flexibility, we can pass `OpenViewArguments` which define
      * options on how to handle opening the widget:
-     * 
+     *
      ```ts
         toggle?: boolean
         activate?: boolean;
@@ -78,37 +76,34 @@ export class WidgetContribution extends AbstractViewContribution<WidgetWidget> {
             execute: async (args: { renderSwitch: 'exerciseFiles' | 'conductorFiles' }) => {
                 const { renderSwitch } = args;
                 console.log(`Creating files with renderSwitch: ${renderSwitch}`);
-        
+
                 this.exerciseCreatorAgent.filesToBeGenerated({
-                    exerciseFiles: [], 
-                    renderSwitch: renderSwitch, 
-                    fileListSummarization: '', 
-                    conductorFiles: [], 
-                    exerciseId: '', 
-                    exerciseName: '', 
+                    exerciseFiles: [],
+                    renderSwitch: renderSwitch,
+                    fileListSummarization: '',
+                    conductorFiles: [],
+                    exerciseId: '',
+                    exerciseName: '',
                     exerciseSummarization: ''
                 });
             }
         });
-        
 
-    // Register the command for fetching the exercise list
-    commands.registerCommand(GetExerciseListCommand, {
-        execute: async () => {
-            const exerciseList = await this.exerciseConductorAgent.exerciseService.allExercises;
-            console.log('Exercise List:', exerciseList);
+        commands.registerCommand(GetExerciseListCommand, {
+            execute: async () => {
+                const exerciseList = await this.exerciseConductorAgent.exerciseService.allExercises;
+                console.log('Exercise List:', exerciseList);
 
-        }
-    });
+            }
+        });
 
-    super.registerCommands(commands);
-
+        super.registerCommands(commands);
     }
 
     /**
      * Example menu registration to contribute a menu item used to open the widget.
      * Default location when extending the `AbstractViewContribution` is the `View` main-menu item.
-     * 
+     *
      * We can however define new menu path locations in the following way:
      ```ts
         menus.registerMenuAction(CommonMenus.HELP, {
@@ -116,7 +111,7 @@ export class WidgetContribution extends AbstractViewContribution<WidgetWidget> {
             label: 'label'
         });
      ```
-     * 
+     *
      * @param menus
      */
     registerMenus(menus: MenuModelRegistry): void {
