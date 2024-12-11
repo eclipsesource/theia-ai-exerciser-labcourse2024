@@ -30,6 +30,9 @@ import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { CommandChatResponseContentImpl } from '@theia/ai-chat';
 import { CustomCallback } from '@theia/ai-chat/lib/common';
 import {ExerciseChatResponse} from "../exercise-creator/types";
+import { EditorManager } from '@theia/editor/lib/browser/editor-manager';
+import { TextEditor } from '@theia/editor/lib/browser';
+
 @injectable()
 export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
     name: string;
@@ -49,6 +52,9 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
 
     @inject(FileService)
     protected readonly fileService: FileService;
+
+    @inject(EditorManager)
+    protected readonly editorManager: EditorManager;
 
     constructor() {
         super('ExerciseConductor', [{
@@ -231,9 +237,51 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
         return new CommandChatResponseContentImpl({ id: 'custom-command' }, customCallback);
     }
 
-    protected override async getSystemMessageDescription(): Promise<SystemMessageDescription | undefined> {
-        const exercises = JSON.stringify(this.exerciseService.allExercises)
-        const resolvedPrompt = await this.promptService.getPrompt(exerciseConductorTemplate.id, { exercisesInService: exercises });
-        return resolvedPrompt ? SystemMessageDescription.fromResolvedPromptTemplate(resolvedPrompt) : undefined;
+
+     /**
+     * Retrieves the text of the currently opened file in the editor.
+     * @returns The text of the currently active file or `undefined` if no editor is active.
+     */
+    public async getCurrentFileText(): Promise<string | undefined> {
+        const currentEditorWidget = this.editorManager.currentEditor;
+        if (!currentEditorWidget) {
+            console.error('No active editor found.');
+            return undefined;
+        }
+
+        const editor: TextEditor = currentEditorWidget.editor;
+        return editor.document.getText();
     }
+
+    protected override async getSystemMessageDescription(): Promise<SystemMessageDescription | undefined> {
+        try {
+            // Fetch the current file's text
+            const currentFileText = await this.getCurrentFileText();
+    
+            if (!currentFileText) {
+                this.logger.warn('No active file found. Skipping currentFileText in the prompt.');
+            }
+            const exercises = JSON.stringify(this.exerciseService.allExercises)
+
+            const resolvedPrompt = await this.promptService.getPrompt(exerciseConductorTemplate.id, { 
+                exercisesInService: exercises,
+                currentFileText: currentFileText || 'No active file content available.',
+            });
+
+            return resolvedPrompt 
+                ? SystemMessageDescription.fromResolvedPromptTemplate(resolvedPrompt)
+                : undefined;
+
+       } catch (error) {
+            this.logger.error('Error constructing system message description:', error);
+            return undefined;
+       }
+    }
+
+   
+
+    
 }
+
+
+
