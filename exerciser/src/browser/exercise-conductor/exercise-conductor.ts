@@ -98,14 +98,20 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             return { function: 'unknown' };
         }
     }
+    
     protected override async addContentsToResponse(response: LanguageModelResponse, request: ChatRequestModelImpl): Promise<void> {
         this.logger.info('Response as text:', response);
 
         const responseAsText = await getTextOfResponse(response);
         this.logger.info('Response as text:', responseAsText);
         const jsonMatch = responseAsText.match(/(\{[\s\S]*\})/);
+        this.logger.info('Response as text:', responseAsText);
+
         if (!jsonMatch) {
-            request.response.response.addContent(new MarkdownChatResponseContentImpl(responseAsText));
+            this.logger.info('nothing');
+
+            const contents = this.parseContents(responseAsText);
+            request.response.response.addContents(contents);
         } else {
             const jsonString = jsonMatch[1];
             this.logger.info('JSON string:', jsonString);
@@ -114,7 +120,8 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 jsonObj = JSON.parse(jsonString)
             }catch(error){
                 this.logger.error('Error parsing JSON:', error);
-                request.response.response.addContent(new MarkdownChatResponseContentImpl(responseAsText))
+                const contents = this.parseContents(responseAsText);
+                request.response.response.addContents(contents);
                 return;
             }
             
@@ -130,7 +137,8 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                     this.handleGetExercise(request, jsonObj.exerciseContent);
                     break;
                 default:
-                    request.response.response.addContent(new MarkdownChatResponseContentImpl(responseAsText));
+                    const contents = this.parseContents(responseAsText);
+                    request.response.response.addContents(contents);
             }
         }
     }
