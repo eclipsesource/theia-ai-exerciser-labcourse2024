@@ -8,6 +8,8 @@ import { ExerciseOverview,Exercise } from '../exercise-service/types';
 import { ExerciseWidgetList } from './widget-renderer/widget-exercise-list';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
+import {AI_CHAT_NEW_CHAT_WINDOW_COMMAND} from "@theia/ai-chat-ui/lib/browser/chat-view-commands";
+import {AI_CHAT_TOGGLE_COMMAND_ID} from "@theia/ai-chat-ui/lib/browser/ai-chat-ui-contribution";
 
 @injectable()
 export class WidgetWidget extends ReactWidget {
@@ -89,15 +91,32 @@ export class WidgetWidget extends ReactWidget {
     }
 
     render(): React.ReactElement {
+
+        const handler = async () => {
+            this.commandService.executeCommand(AI_CHAT_TOGGLE_COMMAND_ID)
+            this.commandService.executeCommand(AI_CHAT_NEW_CHAT_WINDOW_COMMAND.id)
+        }
+
         return <div id='widget-container' style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
             marginRight: 20,
-            marginLeft: 20
+            marginLeft: 20,
         }}>
             <h2>Exercise List</h2>
             <ExerciseWidgetList
                 exercises={this.exerciseList}
                 fileCreation = {this.createConductorFile.bind(this)}
             />
+            <div style={{flexGrow: 1}}/>
+            <div style={{
+                alignSelf: "end",
+                paddingBottom: 20
+            }}>
+                <button className={"theia-button main"} onClick={handler}>Create Exercise</button>
+                <button className={"theia-button main"} onClick={handler}>Conduct Exercise</button>
+            </div>
         </div>
     }
 

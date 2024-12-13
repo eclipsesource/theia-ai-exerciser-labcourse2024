@@ -18,6 +18,9 @@ export const ExerciseWidgetList: React.FC<Props> = ({exercises,fileCreation}) =>
             {exercises.map(exercise => {
                 return <ExerciseWidgetItem key={exercise.exerciseId} exercise={exercise} fileCreation={fileCreation}/>
             })}
+            {exercises.length === 0 && (
+                <p>No exercise was found...</p>
+            )}
         </div>
     )
 }
