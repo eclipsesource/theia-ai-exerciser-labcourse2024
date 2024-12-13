@@ -17,10 +17,10 @@ export const ExerciseItem: React.FC<Props> = ({file}) => {
             display: "flex",
             flexDirection: "column",
             flexGrow: 1,
-            border: "solid",
+            padding: 10,
             borderRadius: 4,
-            padding: 10
-        }}>
+            border: "1px solid var(--theia-sideBarSectionHeader-border)",
+        }} className={"separator-border fa-border "}>
             <div style={{
                 display: "flex",
                 flexDirection: "row",

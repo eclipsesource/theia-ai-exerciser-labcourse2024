@@ -14,13 +14,14 @@
 // SPDX-License-Identifier: EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0
 // *****************************************************************************
 
-
-import {injectable} from "@theia/core/shared/inversify";
+import {inject, injectable} from "@theia/core/shared/inversify";
 import {ChatResponsePartRenderer} from "@theia/ai-chat-ui/lib/browser/chat-response-part-renderer";
 import {ChatResponseContent} from "@theia/ai-chat";
 import * as React from '@theia/core/shared/react';
 import {ExerciseChatResponse} from "../exercise-creator/types";
 import {ExerciseList} from "./exercise-list";
+import {generateUuid, MessageService} from "@theia/core";
+import {ExerciseService} from "../exercise-service";
 
 export interface ExerciseChatResponseContent
     extends ChatResponseContent {
@@ -63,6 +64,13 @@ export namespace ExerciseChatResponseContent {
 
 @injectable()
 export class ExerciseRenderer implements ChatResponsePartRenderer<ExerciseChatResponseContent> {
+
+    @inject(ExerciseService)
+    protected readonly exerciseService: ExerciseService;
+
+    @inject(MessageService)
+    protected readonly messageService: MessageService;
+
     canHandle(response: ChatResponseContent): number {
         if (ExerciseChatResponseContent.is(response)) {
             return 10;
@@ -72,9 +80,15 @@ export class ExerciseRenderer implements ChatResponsePartRenderer<ExerciseChatRe
 
     render(response: ExerciseChatResponseContent): React.ReactNode {
         const files = response.content.renderSwitch === "exerciseFiles" ? response.content.exerciseFiles:response.content.conductorFiles;
+
+        const createExerciseCallback = async () => {
+            this.exerciseService.addExercise({...response.content, exerciseId: generateUuid()})
+            this.messageService.info("Exercise created!", { timeout: 3000 });
+        }
+
         return (
             <div style={{display: "flex", flexDirection: "column"}}>
-                <ExerciseList files={files}/>
+                <ExerciseList files={files} createExerciseCallback={createExerciseCallback}/>
             </div>
         )
     }

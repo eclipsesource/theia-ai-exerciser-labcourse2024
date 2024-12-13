@@ -53,7 +53,7 @@ export class WidgetWidget extends ReactWidget {
             })
         )
     }
-    
+
     getExerciseList(): void {
         this.exerciseList = this.exerciseService.getExerciseList();
         this.update(); // Trigger a re-render of the widget
@@ -88,26 +88,16 @@ export class WidgetWidget extends ReactWidget {
         }
     }
 
-    
-    
     render(): React.ReactElement {
-        return <div id='widget-container'>
-    
+        return <div id='widget-container' style={{
+            marginRight: 20,
+            marginLeft: 20
+        }}>
             <h2>Exercise List</h2>
-
             <ExerciseWidgetList
-                    exercises={this.exerciseList}  fileCreation = {this.createConductorFile.bind(this)}
-                />
-
-            {/* <button
-                id="getExerciseListButton"
-                className="theia-button secondary"
-                onClick={() =>
-                    this.getExerciseList()
-                }
-            >
-                Get Exercise List
-            </button> */}
+                exercises={this.exerciseList}
+                fileCreation = {this.createConductorFile.bind(this)}
+            />
         </div>
     }
 

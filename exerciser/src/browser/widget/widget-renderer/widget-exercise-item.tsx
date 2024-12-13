@@ -22,9 +22,9 @@ export const ExerciseWidgetItem: React.FC<Props> = ({ exercise,fileCreation }) =
                 display: "flex",
                 flexDirection: "column",
                 flexGrow: 1,
-                border: "solid",
+                padding: 10,
                 borderRadius: 4,
-                padding: 10
+                border: "1px solid var(--theia-sideBarSectionHeader-border)",
             }}>
                 <div style={{
                     display: "flex",

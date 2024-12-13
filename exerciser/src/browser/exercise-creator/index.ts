@@ -26,20 +26,12 @@ import {
     LanguageModelResponse,
     PromptTemplate
 } from '@theia/ai-core';
-import { inject, injectable } from '@theia/core/shared/inversify';
+import { injectable } from '@theia/core/shared/inversify';
 import { exerciseCreatorTemplate } from "./template";
 import { CREATE_FILE_FUNCTION_ID, GET_FILE_CONTENT_FUNCTION_ID, GET_WORKSPACE_FILES_FUNCTION_ID } from '../utils/tool-functions/function-names';
-import {generateUuid} from "@theia/core";
-import {
-    ChatRequestModelImpl, CommandChatResponseContentImpl,
-    CustomCallback,
-    MarkdownChatResponseContentImpl
-} from "@theia/ai-chat";
-import {
-    ExerciseChatResponseContentImpl
-} from "../chat-response-renderer/exercise-renderer";
-import {ExerciseService} from "../exercise-service";
-import {ExerciseChatResponse} from "./types";
+import { ChatRequestModelImpl, MarkdownChatResponseContentImpl } from "@theia/ai-chat";
+import { ExerciseChatResponseContentImpl } from "../chat-response-renderer/exercise-renderer";
+import { ExerciseChatResponse } from "./types";
 
 @injectable()
 export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
@@ -49,9 +41,6 @@ export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent imp
     variables: never[];
     readonly agentSpecificVariables: AgentSpecificVariables[];
     readonly functions: string[];
-
-    @inject(ExerciseService)
-    protected readonly exerciseService: ExerciseService;
 
     constructor() {
         super('ExerciseCreator', [{
@@ -89,24 +78,12 @@ export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent imp
             try {
                 const exerciseCreatorResponse: ExerciseChatResponse = {...JSON.parse(jsonString), renderSwitch: "exerciseFiles"};
                 const exerciseContentChatResponse = new ExerciseChatResponseContentImpl(exerciseCreatorResponse);
-                const generateFileChatResponse = this.filesToBeGenerated(exerciseCreatorResponse);
                 request.response.response.addContent(exerciseContentChatResponse);
-                request.response.response.addContent(generateFileChatResponse);
             } catch (error) {
                 request.response.response.addContent(new ErrorChatResponseContentImpl(new Error("Error while parsing files")));
             }
         } else {
             request.response.response.addContent(new MarkdownChatResponseContentImpl(responseText));
         }
-    }
-
-    filesToBeGenerated(exerciseCreatorResponse: ExerciseChatResponse) {
-        const customCallback: CustomCallback = {
-            label: 'Create Exercise',
-            callback: async () => {
-                this.exerciseService.addExercise({...exerciseCreatorResponse, exerciseId: generateUuid()})
-            }
-        };
-        return new CommandChatResponseContentImpl({id: 'custom-command'}, customCallback);
     }
 }
