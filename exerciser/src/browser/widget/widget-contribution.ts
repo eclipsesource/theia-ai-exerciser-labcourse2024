@@ -76,18 +76,8 @@ export class WidgetContribution extends AbstractViewContribution<WidgetWidget> {
             execute: async (args: { renderSwitch: 'exerciseFiles' | 'conductorFiles' }) => {
                 const { renderSwitch } = args;
                 console.log(`Creating files with renderSwitch: ${renderSwitch}`);
-
-                this.exerciseCreatorAgent.filesToBeGenerated({
-                    exerciseFiles: [],
-                    renderSwitch: renderSwitch,
-                    fileListSummarization: '',
-                    conductorFiles: [],
-                    exerciseId: '',
-                    exerciseName: '',
-                    exerciseSummarization: ''
-                });
             }
-        });
+        }); 
 
         commands.registerCommand(GetExerciseListCommand, {
             execute: async () => {
