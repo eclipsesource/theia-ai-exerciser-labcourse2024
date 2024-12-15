@@ -4,10 +4,11 @@ import { ExerciseOverview } from '../../exercise-service/types';
 
 export type Props = {
     exercises: ExerciseOverview[]
-    fileCreation: (exerciseId: string) => Promise<void>
+    createExerciseFile: (exerciseId: string) => Promise<void>
+    removeExercise: (exerciseId: string) => Promise<void>
 }
 
-export const ExerciseWidgetList: React.FC<Props> = ({exercises,fileCreation}) => {
+export const ExerciseWidgetList: React.FC<Props> = ({exercises,createExerciseFile, removeExercise}) => {
     return (
         <div style={{
             display: "flex",
@@ -16,7 +17,14 @@ export const ExerciseWidgetList: React.FC<Props> = ({exercises,fileCreation}) =>
             marginBottom: 5
         }}>
             {exercises.map(exercise => {
-                return <ExerciseWidgetItem key={exercise.exerciseId} exercise={exercise} fileCreation={fileCreation}/>
+                return (
+                    <ExerciseWidgetItem
+                        key={exercise.exerciseId}
+                        exercise={exercise}
+                        createExerciseFile={createExerciseFile}
+                        removeExercise={removeExercise}
+                    />
+                )
             })}
             {exercises.length === 0 && (
                 <p>No exercise was found...</p>

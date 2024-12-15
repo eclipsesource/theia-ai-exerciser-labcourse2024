@@ -84,10 +84,19 @@ export class WidgetWidget extends ReactWidget {
         const exerise= this.exerciseService.getExercise(exerciseId);
         if(exerise){
              await this.fileCreation(exerise);
-             this.messageService.info('Exercise files created successfully');
+             this.messageService.info('Exercise files created successfully', { timeout: 3000 });
         }else{
             console.error(`Exercise with ID ${exerciseId} not found.`);
         }
+    }
+
+    async removeExercise(exerciseId:string): Promise<void> {
+        const isRemoved= this.exerciseService.removeExercise(exerciseId);
+        if(!isRemoved){
+            this.messageService.error('Error while removing exercise', { timeout: 3000 });
+        }
+        this.messageService.info('Exercise removed', { timeout: 3000 });
+        this.update();
     }
 
     render(): React.ReactElement {
@@ -107,7 +116,8 @@ export class WidgetWidget extends ReactWidget {
             <h2>Exercise List</h2>
             <ExerciseWidgetList
                 exercises={this.exerciseList}
-                fileCreation = {this.createConductorFile.bind(this)}
+                createExerciseFile = {this.createConductorFile.bind(this)}
+                removeExercise = {this.removeExercise.bind(this)}
             />
             <div style={{flexGrow: 1}}/>
             <div style={{
@@ -121,7 +131,7 @@ export class WidgetWidget extends ReactWidget {
     }
 
     protected displayMessage(): void {
-        this.messageService.info('Congratulations: Widget Widget Successfully Created!');
+        this.messageService.info('Congratulations: Exerciser Widget Successfully Created!', { timeout: 3000 });
     }
 
     protected onActivateRequest(msg: Message): void {

@@ -3,10 +3,11 @@ import {  ExerciseOverview } from '../../exercise-service/types';
 
 export type Props = {
     exercise: ExerciseOverview
-    fileCreation: (fileName: string) => void
+    createExerciseFile: (exerciseId: string) => Promise<void>
+    removeExercise: (exerciseId: string) => Promise<void>
 }
 
-export const ExerciseWidgetItem: React.FC<Props> = ({ exercise,fileCreation }) => {
+export const ExerciseWidgetItem: React.FC<Props> = ({ exercise,createExerciseFile, removeExercise }) => {
     const [isOpen, setIsOpen] = React.useState(false)
 
     const showFileContent = () => {
@@ -16,7 +17,9 @@ export const ExerciseWidgetItem: React.FC<Props> = ({ exercise,fileCreation }) =
     return (
         <div style={{
             display: "flex",
-            flexDirection: "row",
+            flexDirection: "column",
+            gap: 5,
+            marginBottom: 5
         }}>
             <div style={{
                 display: "flex",
@@ -33,9 +36,9 @@ export const ExerciseWidgetItem: React.FC<Props> = ({ exercise,fileCreation }) =
                 }}>
                     <span>{exercise.exerciseName}</span>
                     {isOpen ? (
-                        <span className="codicon codicon-arrow-up" title="collapse" onClick={showFileContent} />
+                        <span className="codicon codicon-arrow-up" title="collapse" onClick={showFileContent}/>
                     ) : (
-                        <span className="codicon codicon-arrow-down" title="expand" onClick={showFileContent} />
+                        <span className="codicon codicon-arrow-down" title="expand" onClick={showFileContent}/>
                     )}
                 </div>
                 {isOpen && (
@@ -46,7 +49,20 @@ export const ExerciseWidgetItem: React.FC<Props> = ({ exercise,fileCreation }) =
                     </div>
                 )}
             </div>
-            <button onClick={()=>fileCreation(exercise.exerciseId)} className="theia-button secondary" id="getExerciseListButton">Create exercise</button>
+            <div style={{alignSelf: "end"}}>
+                <button
+                    className={"theia-button main"}
+                    onClick={() => createExerciseFile(exercise.exerciseId)}
+                >
+                    Create exercise files
+                </button>
+                <button
+                    className={"theia-button main"}
+                    onClick={() => removeExercise(exercise.exerciseId)}
+                >
+                    Remove exercise
+                </button>
+            </div>
         </div>
     )
 }

@@ -9,7 +9,7 @@ export class ExerciseService {
     exercises: Exercise[] = [];
     protected readonly onExerciseChangeEmitter = new Emitter<Exercise[]>();
     onExerciseChange = this.onExerciseChangeEmitter.event;
-    
+
     get allExercises(): Exercise[] {
         return this.exercises;
     }
@@ -72,6 +72,15 @@ export class ExerciseService {
         Object.assign(exercise, updatedExercise);
 
         this.logger.info(`Exercise updated: ${updatedExercise.exerciseName}`);
+        return true;
+    }
+
+    removeExercise(exercise_id: string): boolean {
+        const index = this.exercises.findIndex(ex => ex.exerciseId === exercise_id);
+        if (index === -1) {
+            return false;
+        }
+        this.exercises.splice(index, 1)
         return true;
     }
 }
