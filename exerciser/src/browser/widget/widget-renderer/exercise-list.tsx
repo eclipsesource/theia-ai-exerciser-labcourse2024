@@ -1,6 +1,6 @@
 import * as React from '@theia/core/shared/react';
-import { ExerciseWidgetItem } from './widget-exercise-item';
 import { ExerciseOverview } from '../../exercise-service/types';
+import { ExerciseItem } from "./exercise-item";
 
 export type Props = {
     exercises: ExerciseOverview[]
@@ -8,7 +8,7 @@ export type Props = {
     removeExercise: (exerciseId: string) => Promise<void>
 }
 
-export const ExerciseWidgetList: React.FC<Props> = ({exercises,createExerciseFile, removeExercise}) => {
+export const ExerciseList: React.FC<Props> = ({exercises,createExerciseFile, removeExercise}) => {
     return (
         <div style={{
             display: "flex",
@@ -18,7 +18,7 @@ export const ExerciseWidgetList: React.FC<Props> = ({exercises,createExerciseFil
         }}>
             {exercises.map(exercise => {
                 return (
-                    <ExerciseWidgetItem
+                    <ExerciseItem
                         key={exercise.exerciseId}
                         exercise={exercise}
                         createExerciseFile={createExerciseFile}

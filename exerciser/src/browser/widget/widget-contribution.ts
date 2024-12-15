@@ -1,6 +1,6 @@
 import { injectable, inject } from '@theia/core/shared/inversify';
 import { MenuModelRegistry } from '@theia/core';
-import { WidgetWidget } from './widget-widget';
+import { ExerciserWidget } from './exerciser-widget';
 import { AbstractViewContribution } from '@theia/core/lib/browser';
 import { Command, CommandRegistry } from '@theia/core/lib/common/command';
 import { ExerciseService } from '../exercise-service';
@@ -21,7 +21,7 @@ export const GetExerciseListCommand: Command = {
 
 
 @injectable()
-export class WidgetContribution extends AbstractViewContribution<WidgetWidget> {
+export class WidgetContribution extends AbstractViewContribution<ExerciserWidget> {
 
     @inject(ExerciseService)
     protected readonly exerciseService: ExerciseService;
@@ -42,8 +42,8 @@ export class WidgetContribution extends AbstractViewContribution<WidgetWidget> {
      */
     constructor() {
         super({
-            widgetId: WidgetWidget.ID,
-            widgetName: WidgetWidget.LABEL,
+            widgetId: ExerciserWidget.ID,
+            widgetName: ExerciserWidget.LABEL,
             defaultWidgetOptions: { area: 'left' },
             toggleCommandId: WidgetCommand.id
         });
@@ -77,12 +77,12 @@ export class WidgetContribution extends AbstractViewContribution<WidgetWidget> {
                 const { renderSwitch } = args;
                 console.log(`Creating files with renderSwitch: ${renderSwitch}`);
             }
-        }); 
+        });
 
         commands.registerCommand(GetExerciseListCommand, {
             execute: async () => {
                 const exerciseList = await this.exerciseService.getExerciseList();
-                console.log('Exercise List:', exerciseList);  
+                console.log('Exercise List:', exerciseList);
             }
         });
 

@@ -7,7 +7,7 @@ export type Props = {
     removeExercise: (exerciseId: string) => Promise<void>
 }
 
-export const ExerciseWidgetItem: React.FC<Props> = ({ exercise,createExerciseFile, removeExercise }) => {
+export const ExerciseItem: React.FC<Props> = ({ exercise,createExerciseFile, removeExercise }) => {
     const [isOpen, setIsOpen] = React.useState(false)
 
     const showFileContent = () => {

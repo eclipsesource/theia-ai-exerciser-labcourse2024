@@ -2,17 +2,17 @@ import * as React from 'react';
 import { injectable, postConstruct, inject } from '@theia/core/shared/inversify';
 import { ReactWidget } from '@theia/core/lib/browser/widgets/react-widget';
 import { MessageService, CommandService } from '@theia/core';
-import { Message } from '@theia/core/lib/browser';
+import {codicon, Message} from '@theia/core/lib/browser';
 import { ExerciseService } from "../exercise-service";
 import { ExerciseOverview,Exercise } from '../exercise-service/types';
-import { ExerciseWidgetList } from './widget-renderer/widget-exercise-list';
+import { ExerciseList } from './widget-renderer/exercise-list';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import {AI_CHAT_NEW_CHAT_WINDOW_COMMAND} from "@theia/ai-chat-ui/lib/browser/chat-view-commands";
 import {AI_CHAT_TOGGLE_COMMAND_ID} from "@theia/ai-chat-ui/lib/browser/ai-chat-ui-contribution";
 
 @injectable()
-export class WidgetWidget extends ReactWidget {
+export class ExerciserWidget extends ReactWidget {
 
     static readonly ID = 'widget:exerciser';
     static readonly LABEL = 'Exerciser';
@@ -41,11 +41,11 @@ export class WidgetWidget extends ReactWidget {
     }
 
     protected async doInit(): Promise <void> {
-        this.id = WidgetWidget.ID;
-        this.title.label = WidgetWidget.LABEL;
-        this.title.caption = WidgetWidget.LABEL;
+        this.id = ExerciserWidget.ID;
+        this.title.label = ExerciserWidget.LABEL;
+        this.title.caption = ExerciserWidget.LABEL;
         this.title.closable = true;
-        this.title.iconClass = 'fa fa-window-maximize'; // example widget icon.
+        this.title.iconClass = codicon('code');
         this.update();
         this.getExerciseList();
         this.toDispose.push(
@@ -114,7 +114,7 @@ export class WidgetWidget extends ReactWidget {
             marginLeft: 20,
         }}>
             <h2>Exercise List</h2>
-            <ExerciseWidgetList
+            <ExerciseList
                 exercises={this.exerciseList}
                 createExerciseFile = {this.createConductorFile.bind(this)}
                 removeExercise = {this.removeExercise.bind(this)}
