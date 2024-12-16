@@ -124,8 +124,7 @@ export class ExerciserWidget extends ReactWidget {
                 alignSelf: "end",
                 paddingBottom: 20
             }}>
-                <button className={"theia-button main"} onClick={handler}>Exercise Creator Chat Agent</button>
-                <button className={"theia-button main"} onClick={handler}>Exercise Conductor Chat Agent</button>
+                <button className={"theia-button main"} onClick={handler}>Exerciser Chat Agent</button>
             </div>
         </div>
     }
