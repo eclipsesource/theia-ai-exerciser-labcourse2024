@@ -195,7 +195,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 const exerciseContentChatResponse : ExerciseChatResponse = {...exercise, renderSwitch: "conductorFiles"};
                 // new ExerciseChatResponseContentImpl(exercise, renderSwitch:'conductorFiles');
                 request.response.response.addContent(new ExerciseChatResponseContentImpl(exerciseContentChatResponse));
-                request.response.response.addContent(this.fileGenerator(exercise));
+              
                 // Format the conductor files as Markdown
                 request.response.response.addContent(new MarkdownChatResponseContentImpl(`Click the button to create the exercise in your workspace`))
 
@@ -216,34 +216,34 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
     //     return this.handleFunctionCall(parsedCommand);
     // }
 
-    protected fileGenerator(exercise: Exercise): ChatResponseContent {
-        const customCallback: CustomCallback = {
-            label: 'Create Exercise',
-            callback: async () => {
-                const wsRoots = await this.workspaceService.roots;
+    // protected fileGenerator(exercise: Exercise): ChatResponseContent {
+    //     const customCallback: CustomCallback = {
+    //         label: 'Create Exercise',
+    //         callback: async () => {
+    //             const wsRoots = await this.workspaceService.roots;
 
-                if (wsRoots.length === 0) {
-                    console.error(`No workspace found to create files.`);
-                }
+    //             if (wsRoots.length === 0) {
+    //                 console.error(`No workspace found to create files.`);
+    //             }
 
-                // Use the first workspace root as the base directory
-                const rootUri = wsRoots[0].resource;
+    //             // Use the first workspace root as the base directory
+    //             const rootUri = wsRoots[0].resource;
 
-                // Create the exercise folder
-                const exerciseFolderUri = rootUri.resolve(exercise.exerciseName);
-                await this.fileService.createFolder(exerciseFolderUri);
+    //             // Create the exercise folder
+    //             const exerciseFolderUri = rootUri.resolve(exercise.exerciseName);
+    //             await this.fileService.createFolder(exerciseFolderUri);
 
-                // Iterate over conductorFiles and create files in the exercise folder
-                exercise.conductorFiles.forEach(async (conductorFile) => {
-                    const fileUri = exerciseFolderUri.resolve(conductorFile.fileName);
-                    await this.fileService.write(fileUri, conductorFile.content);
-                });
-            }
+    //             // Iterate over conductorFiles and create files in the exercise folder
+    //             exercise.conductorFiles.forEach(async (conductorFile) => {
+    //                 const fileUri = exerciseFolderUri.resolve(conductorFile.fileName);
+    //                 await this.fileService.write(fileUri, conductorFile.content);
+    //             });
+    //         }
 
-        };
+    //     };
 
-        return new CommandChatResponseContentImpl({ id: 'custom-command' }, customCallback);
-    }
+    //     return new CommandChatResponseContentImpl({ id: 'custom-command' }, customCallback);
+    // }
 
 
      /**
