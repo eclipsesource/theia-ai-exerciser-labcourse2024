@@ -9,9 +9,9 @@ export const exerciseConductorTemplate = <PromptTemplate>{
      
 
      ## Exercise Information
-     - All the exercises available for users are here in Json format, any time the user asks for the available exercises, you should response base on this, it is dynamic and can change for each query:
+     - All the exercises available for users are here in Json format, any time the user asks for the available exercises, you should response based on this, it is dynamic and can change for each query:
        \`\`\`
-       {{ exerciseInService }}
+       {{ exercisesInService }}
        \`\`\`
 
 
