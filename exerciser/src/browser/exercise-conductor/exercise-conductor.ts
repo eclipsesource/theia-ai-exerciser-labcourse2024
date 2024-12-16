@@ -22,13 +22,12 @@ import { GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID } from '../util
 import { ChatRequestModelImpl } from '@theia/ai-chat/lib/common';
 import { LanguageModelResponse } from '@theia/ai-core';
 import { ExerciseService } from '../exercise-service';
-import { ChatResponseContent, MarkdownChatResponseContentImpl } from "@theia/ai-chat";
+import {  MarkdownChatResponseContentImpl } from "@theia/ai-chat";
 import { Exercise, ExerciseOverview } from '../exercise-service/types';
 import { ExerciseChatResponseContentImpl } from '../chat-response-renderer/exercise-renderer';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
-import { CommandChatResponseContentImpl } from '@theia/ai-chat';
-import { CustomCallback } from '@theia/ai-chat/lib/common';
+
 import {ExerciseChatResponse} from "../exercise-creator/types";
 import { EditorManager } from '@theia/editor/lib/browser/editor-manager';
 import { TextEditor } from '@theia/editor/lib/browser';
