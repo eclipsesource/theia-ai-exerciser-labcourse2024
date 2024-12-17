@@ -4,14 +4,15 @@ import {ExerciseFile} from "../exercise-service/types";
 
 export type Props = {
     files: ExerciseFile[],
-    createExerciseCallback: () => void
+    buttonContent: string,
+    callback: () => void,
 }
 
-export const ExerciseList: React.FC<Props> = ({files, createExerciseCallback}) => {
+export const ExerciseList: React.FC<Props> = ({files, buttonContent, callback}) => {
     const [isCallbackCalled, setIsCallbackCalled] = React.useState(false);
 
     const handleCreate = () => {
-        createExerciseCallback();
+        callback();
         setIsCallbackCalled(true)
     }
 
@@ -31,7 +32,7 @@ export const ExerciseList: React.FC<Props> = ({files, createExerciseCallback}) =
                 onClick={handleCreate}
                 disabled={isCallbackCalled}
             >
-                Create Exercise
+                {buttonContent}
             </button>
         </div>
     )

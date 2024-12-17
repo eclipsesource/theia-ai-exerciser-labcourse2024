@@ -22,6 +22,9 @@ import {ExerciseChatResponse} from "../exercise-creator/types";
 import {ExerciseList} from "./exercise-list";
 import {generateUuid, MessageService} from "@theia/core";
 import {ExerciseService} from "../exercise-service";
+import {Exercise} from "../exercise-service/types";
+import {FileService} from "@theia/filesystem/lib/browser/file-service";
+import {WorkspaceService} from "@theia/workspace/lib/browser";
 
 export interface ExerciseChatResponseContent
     extends ChatResponseContent {
@@ -71,6 +74,33 @@ export class ExerciseRenderer implements ChatResponsePartRenderer<ExerciseChatRe
     @inject(MessageService)
     protected readonly messageService: MessageService;
 
+    @inject(FileService)
+    protected readonly fileService: FileService;
+
+    @inject(WorkspaceService)
+    protected readonly workspaceService: WorkspaceService;
+
+    async fileCreation(exercise: Exercise): Promise<void> {
+        const wsRoots = await this.workspaceService.roots;
+
+        if (wsRoots.length === 0) {
+            console.error(`No workspace found to create files.`);
+        }
+
+        // Use the first workspace root as the base directory
+        const rootUri = wsRoots[0].resource;
+
+        // Create the exercise folder
+        const exerciseFolderUri = rootUri.resolve(exercise.exerciseName);
+        await this.fileService.createFolder(exerciseFolderUri);
+
+        // Iterate over conductorFiles and create files in the exercise folder
+        exercise.conductorFiles.forEach(async (conductorFile) => {
+            const fileUri = exerciseFolderUri.resolve(conductorFile.fileName);
+            await this.fileService.write(fileUri, conductorFile.content);
+        });
+    }
+
     canHandle(response: ChatResponseContent): number {
         if (ExerciseChatResponseContent.is(response)) {
             return 10;
@@ -79,7 +109,17 @@ export class ExerciseRenderer implements ChatResponsePartRenderer<ExerciseChatRe
     }
 
     render(response: ExerciseChatResponseContent): React.ReactNode {
-        const files = response.content.renderSwitch === "exerciseFiles" ? response.content.exerciseFiles:response.content.conductorFiles;
+        const caller = response.content.renderSwitch === "exerciseFiles" ? "creator" : "conductor";
+
+        const generateExerciseFileCallback = async () => {
+            const exerise= this.exerciseService.getExercise(response.content.exerciseId);
+            if(exerise){
+                await this.fileCreation(exerise);
+                this.messageService.info('Exercise files generated successfully', { timeout: 3000 });
+            }else{
+                console.error(`Exercise with ID ${response.content.exerciseId} not found.`);
+            }
+        }
 
         const createExerciseCallback = async () => {
             this.exerciseService.addExercise({...response.content, exerciseId: generateUuid()})
@@ -88,7 +128,11 @@ export class ExerciseRenderer implements ChatResponsePartRenderer<ExerciseChatRe
 
         return (
             <div style={{display: "flex", flexDirection: "column"}}>
-                <ExerciseList files={files} createExerciseCallback={createExerciseCallback}/>
+                <ExerciseList
+                    files={caller === "creator" ? response.content.exerciseFiles : response.content.conductorFiles}
+                    buttonContent={caller === "creator" ? "Create Exercise" : "Generate Exercise to Workspace"}
+                    callback={caller === "creator" ? createExerciseCallback : generateExerciseFileCallback}
+                />
             </div>
         )
     }

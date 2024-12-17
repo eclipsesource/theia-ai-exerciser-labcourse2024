@@ -97,7 +97,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             return { function: 'unknown' };
         }
     }
-    
+
     protected override async addContentsToResponse(response: LanguageModelResponse, request: ChatRequestModelImpl): Promise<void> {
         this.logger.info('Response as text:', response);
 
@@ -123,7 +123,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 request.response.response.addContents(contents);
                 return;
             }
-            
+
             this.logger.info('JSON object:', jsonObj);
             // const beforeJson = responseAsText.slice(0, jsonMatch.index!);
             // const afterJson =responseAsText.slice(jsonMatch.index! + jsonString.length)
@@ -194,9 +194,9 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 const exerciseContentChatResponse : ExerciseChatResponse = {...exercise, renderSwitch: "conductorFiles"};
                 // new ExerciseChatResponseContentImpl(exercise, renderSwitch:'conductorFiles');
                 request.response.response.addContent(new ExerciseChatResponseContentImpl(exerciseContentChatResponse));
-              
+
                 // Format the conductor files as Markdown
-                request.response.response.addContent(new MarkdownChatResponseContentImpl(`Click the button to create the exercise in your workspace`))
+                // request.response.response.addContent(new MarkdownChatResponseContentImpl(`Click the button to create the exercise in your workspace`))
 
             }
         } catch (error) {
@@ -264,18 +264,18 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
         try {
             // Fetch the current file's text
             const currentFileText = await this.getCurrentFileText();
-    
+
             if (!currentFileText) {
                 this.logger.warn('No active file found. Skipping currentFileText in the prompt.');
             }
             const exercises = JSON.stringify(this.exerciseService.allExercises)
 
-            const resolvedPrompt = await this.promptService.getPrompt(exerciseConductorTemplate.id, { 
+            const resolvedPrompt = await this.promptService.getPrompt(exerciseConductorTemplate.id, {
                 exercisesInService: exercises,
                 currentFileText: currentFileText || 'No active file content available.',
             });
 
-            return resolvedPrompt 
+            return resolvedPrompt
                 ? SystemMessageDescription.fromResolvedPromptTemplate(resolvedPrompt)
                 : undefined;
 
@@ -284,10 +284,6 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             return undefined;
        }
     }
-
-   
-
-    
 }
 
 
