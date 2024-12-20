@@ -8,8 +8,11 @@ import { ExerciseOverview,Exercise } from '../exercise-service/types';
 import { ExerciseList } from './widget-renderer/exercise-list';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
-import {AI_CHAT_NEW_CHAT_WINDOW_COMMAND} from "@theia/ai-chat-ui/lib/browser/chat-view-commands";
+import {
+    AI_CHAT_NEW_CHAT_WINDOW_WITH_PINNED_AGENT_COMMAND
+} from "@theia/ai-chat-ui/lib/browser/chat-view-commands";
 import {AI_CHAT_TOGGLE_COMMAND_ID} from "@theia/ai-chat-ui/lib/browser/ai-chat-ui-contribution";
+import {ChatAgentService} from "@theia/ai-chat";
 
 @injectable()
 export class ExerciserWidget extends ReactWidget {
@@ -32,6 +35,8 @@ export class ExerciserWidget extends ReactWidget {
     @inject(FileService)
     protected readonly fileService: FileService;
 
+    @inject(ChatAgentService)
+    protected chatAgentService: ChatAgentService;
 
     private exerciseList: ExerciseOverview[] = []
 
@@ -101,9 +106,11 @@ export class ExerciserWidget extends ReactWidget {
 
     render(): React.ReactElement {
 
-        const handler = async () => {
+        // TODO - not working if undefined is not passed as first argument
+        const handler = async (agent: "ExerciseCreator" | "ExerciseConductor") => {
+            const chatAgent = this.chatAgentService.getAgent(agent);
             this.commandService.executeCommand(AI_CHAT_TOGGLE_COMMAND_ID)
-            this.commandService.executeCommand(AI_CHAT_NEW_CHAT_WINDOW_COMMAND.id)
+            this.commandService.executeCommand(AI_CHAT_NEW_CHAT_WINDOW_WITH_PINNED_AGENT_COMMAND.id, undefined, chatAgent)
         }
 
         return <div id='widget-container' style={{
@@ -124,7 +131,8 @@ export class ExerciserWidget extends ReactWidget {
                 alignSelf: "end",
                 paddingBottom: 20
             }}>
-                <button className={"theia-button main"} onClick={handler}>Exerciser Chat Agent</button>
+                <button className={"theia-button main"} onClick={() => handler("ExerciseCreator")}>Exerciser Creator</button>
+                <button className={"theia-button main"} onClick={() => handler("ExerciseConductor")}>Exerciser Conductor</button>
             </div>
         </div>
     }
