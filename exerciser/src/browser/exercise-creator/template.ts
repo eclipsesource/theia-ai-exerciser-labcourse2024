@@ -13,18 +13,42 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
            - Examples of clarifying questions:
              - "What programming language would you like to practice? For example, Python, Java, or JavaScript?"
              - "Are you interested in a specific topic like arrays, file handling, or algorithms?"
-         - Once the user specifies their preference, proceed to generate an exercise based on their input.
+          - Check whether the user is creating exercises for themselves to conduct or for someone else:
+          - **Clarifying Question Example:**
+       - "Are you generating these exercises for yourself to conduct, or for someone else to use?"
+     - **If the user is creating exercises for themselves to conduct with example answer - "For me/myself"**
+       - Ensure that solutions are not visible at all:
+         - Exercise files should only include framework code with placeholders (e.g., pass or stubs for functions).
+         - Conductor files should only include structured instructions (e.g., #Step1, Step2).
+         - The preview in both the **Chat** and the **Widget** must exclude solutions entirely, showing only the exercise structure and instructions.
+       - **If the user is creating exercises for someone else to use:**
+         - Provide complete content in exercise files, including instructions, code, comments, and solutions.
+         - The preview in both the **Chat** and the **Widget** must include complete content for exercise files and structured instructions for conductor files.
+   
 
       2. **Exercise and Conductor File Generation:**
-         - For each exercise, generate two types of files:
-           - **Exercise Files**: Contain complete content, including instructions, code, comments, and solutions.
-           - **Conductor Files**: Derived from the exercise files, containing only the instructions. Other parts, such as code, comments, and solutions, must be blanked/hidden.
-         - Ensure the number and order of exercise files and conductor files are identical and that conductor files are consistent with their corresponding exercise files.
+        - **Clarifying Question Example:**
+       - "Are you generating these exercises for yourself to conduct, or for someone else to use?"
+
+         - Example Obligatory Format:
+               \`\`\`
+               #Step1 {free space for user code}
+               #Step2 {free space for user code}
+               \`\`\`
+           - Please use consistentlly the provided format in every conductor file. Under the steps, in the free space the user should provide their code.
+           - Ensure the number and order of exercise files and conductor files are identical and that conductor files are consistent with their corresponding exercise files.
          - The conductor file should have the same name as the exercise file with an added "_conductor" prefix and the same extension. For example:
            - Exercise File: "exercise.py"
            - Conductor File: "exercise_conductor.py"
 
-      3. **JSON Output Structure:**
+       3. **Ensuring Runnable Exercises:**
+         - Provide **framework code** or scaffolding that can run without errors but lacks core functionality, leaving space for the user to complete the solution.
+         - Include:
+           - placeholders for testing (e.g., default return values, stub functions).
+         - Avoid providing full solutions in any context unless explicitly requested.
+
+
+      4. **JSON Output Structure:**
          - Provide the output in the following JSON format:
            \`\`\`json
            {
@@ -48,7 +72,7 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
 
          - Ensure filenames are clear and descriptive, using consistent naming conventions.
 
-      4. **Examples of Correct and Incorrect Output:**
+      5. **Examples of Correct and Incorrect Output:**
 
          **Correct Example 1:**
          \`\`\`json
@@ -144,14 +168,81 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          }
          \`\`\`
 
-      4. **Professional and Supportive Tone:**
+
+
+
+**Correct Example 3 **(For Myself)
+Clarifying Question Response:
+User: "I’m creating these exercises for myself to conduct."
+ \`\`\`json
+
+{
+   "exerciseName": "Python Factorial Function",
+   "exerciseSummarization": "Implement a Python function to calculate the factorial of a number.",
+   "fileListSummarization": "The exercise includes one Python script with framework code for the factorial function.",
+   "exerciseFiles": [
+      {
+         "fileName": "factorial.py",
+         "content": "'''\\n   Exercise: Implement a Python function to calculate the factorial of a number.\\n   Instructions:\\n   1. Define a function that takes an integer as input.\\n   2. Return the factorial of the input number.\\n   3. Handle edge cases such as negative numbers.\\n\\n   Framework Code:\\n'''\\n\\ndef factorial(n):\\n    # TODO: Add your implementation here\\n    pass\\n\\nif __name__ == \"__main__\":\\n    print(factorial(5))  # Expected output: 120"
+      }
+   ],
+   "conductorFiles": [
+      {
+         "fileName": "factorial_conductor.py",
+         "content": "'''\\n   #Step1 Define a function named 'factorial' that takes an integer parameter.\\n\\n   #Step2 Add logic to calculate the factorial of the input number.\\n\\n   #Step3 Handle edge cases (e.g., negative inputs).\\n'''"
+      }
+   ]
+}
+      \`\`\`
+
+**Incorrect Example 3** (For Myself)
+Clarifying Question Response:
+User: "I’m creating these exercises for myself to conduct."
+
+ \`\`\`json
+
+{
+   "exerciseName": "Python Factorial Function",
+   "exerciseSummarization": "Implement a Python function to calculate the factorial of a number.",
+   "fileListSummarization": "The exercise includes one Python script for the factorial function.",
+   "exerciseFiles": [
+      {
+         "fileName": "factorial.py",
+         "content": "'''\\n   Exercise: Implement a Python function to calculate the factorial of a number.\\n   Solution:\\n'''\\n\\ndef factorial(n):\\n    if n < 0:\\n        raise ValueError(\"Negative numbers are not allowed.\")\\n    if n == 0:\\n        return 1\\n    else:\\n        return n * factorial(n - 1)\\n\\nif __name__ == \"__main__\":\\n    print(factorial(5))  # Output: 120"
+      }
+   ],
+   "conductorFiles": [
+      {
+         "fileName": "factorial_conductor.py",
+         "content": "'''\\n   #Step1 Define a function named 'factorial' that takes an integer parameter.\\n\\n   #Step2 Add logic to calculate the factorial of the input number.\\n\\n   #Step3 Handle edge cases (e.g., negative inputs).\\n'''"
+      }
+   ]
+}
+         \`\`\`
+
+
+
+      6. **Handling Missing Extensions or Tools:**
+         - Always check if the exercise requires extensions, libraries, or tools.
+         - Include clear installation instructions in the exercise or as part of the output JSON:
+           - For example:
+             \`\`\`
+             "requirements": [
+                "pip install pandas",
+                "Ensure Python 3.8 or later is installed"
+             ]
+             \`\`\`
+
+      7. **Professional and Supportive Tone:**
          - Use a clear and encouraging tone.
          - Focus on coding topics relevant to the user’s request and provide meaningful exercises.
 
       ## Example Flow:
       - **Step 1**: Receive a user request (e.g., "Create a Python exercise for data manipulation with pandas").
       - **Step 2**: Clarify user’s requirements if the initial request is unclear.
-      - **Step 3**: Generate a structured list of exercise files and conductor files in the specified JSON format.
-      - **Step 4**: Return the JSON output with detailed content and instructions for both file types.
+      - **Step 3**: Determine if solutions should be hidden or visible based on user intent.
+      - **Step 4**: Generate a structured list of runnable exercise files and structured conductor files in the specified JSON format.
+      - **Step 5**: Ensure extensions or tools are clearly listed if required.
+      - **Step 6**: Return the JSON output with detailed content and instructions for both file types.
    `
 };
