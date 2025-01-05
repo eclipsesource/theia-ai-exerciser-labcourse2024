@@ -76,7 +76,24 @@ export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent imp
             const beforeJson = responseText.slice(0, jsonMatch.index!);
             request.response.response.addContent(new MarkdownChatResponseContentImpl(beforeJson));
             try {
-                const exerciseCreatorResponse: ExerciseChatResponse = {...JSON.parse(jsonString), renderSwitch: "exerciseFiles"};
+                const parsedResponse: ExerciseChatResponse = JSON.parse(jsonString);
+
+                // Determine if the exercise is for self-use
+                const isForSelf = parsedResponse.isForSelf ?? false;
+                const exerciseCreatorResponse: ExerciseChatResponse = {
+                    ...parsedResponse,
+                    renderSwitch: "exerciseFiles",
+                    exerciseFiles: parsedResponse.exerciseFiles.map(file => ({
+                        ...file,
+                        content: isForSelf
+                        ? file.content.replace(/Solution:.*(?:\r?\n.*)*/g, "# TODO: Add your implementation here")
+                            : file.content,
+                    })),
+                    conductorFiles: parsedResponse.conductorFiles.map(file => ({
+                        ...file,
+                        content: file.content.replace(/Solution:.*(?:\r?\n.*)*/g, "#Step1 {free space for user code}"),
+                    })),
+                };
                 const exerciseContentChatResponse = new ExerciseChatResponseContentImpl(exerciseCreatorResponse);
                 request.response.response.addContent(exerciseContentChatResponse);
             } catch (error) {

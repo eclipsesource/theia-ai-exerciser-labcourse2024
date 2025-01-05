@@ -17,4 +17,5 @@ export  interface Exercise extends ExerciseOverview{
     fileListSummarization: string;
     exerciseFiles: ExerciseFile[];
     conductorFiles: ExerciseFile[];
+    isForSelf?: boolean;
 }

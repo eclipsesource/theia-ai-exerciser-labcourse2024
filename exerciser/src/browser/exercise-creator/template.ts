@@ -13,23 +13,35 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
            - Examples of clarifying questions:
              - "What programming language would you like to practice? For example, Python, Java, or JavaScript?"
              - "Are you interested in a specific topic like arrays, file handling, or algorithms?"
-          - Check whether the user is creating exercises for themselves to conduct or for someone else:
-          - **Clarifying Question Example:**
-       - "Are you generating these exercises for yourself to conduct, or for someone else to use?"
-     - **If the user is creating exercises for themselves to conduct with example answer - "For me/myself"**
-       - Ensure that solutions are not visible at all:
-         - Exercise files should only include framework code with placeholders (e.g., pass or stubs for functions).
-         - Conductor files should only include structured instructions (e.g., #Step1, Step2).
-         - The preview in both the **Chat** and the **Widget** must exclude solutions entirely, showing only the exercise structure and instructions.
-       - **If the user is creating exercises for someone else to use:**
-         - Provide complete content in exercise files, including instructions, code, comments, and solutions.
-         - The preview in both the **Chat** and the **Widget** must include complete content for exercise files and structured instructions for conductor files.
-   
+         - Clarify whether the user is creating exercises for themselves or others:
+         
+  - **If for self-use:** Exclude solutions entirely from all files.
+  - **If for others:** Include solutions in exercise files but not in conductor files.
+
+## JSON Response Format
+Include an "isForSelf" flag to indicate the user's intent:
+\`\`\`json
+{
+    "isForSelf": true,
+    "exerciseName": "<Name of the exercise>",
+    "exerciseSummarization": "<Short summary>",
+    "fileListSummarization": "<Summary of file structure>",
+    "exerciseFiles": [
+        {
+            "fileName": "<File name>",
+            "content": "<Content without solutions if for self-use>"
+        }
+    ],
+    "conductorFiles": [
+        {
+            "fileName": "<File name with _conductor prefix>",
+            "content": "<Instructions>"
+        }
+    ]
+}
+\`\`\`
 
       2. **Exercise and Conductor File Generation:**
-        - **Clarifying Question Example:**
-       - "Are you generating these exercises for yourself to conduct, or for someone else to use?"
-
          - Example Obligatory Format:
                \`\`\`
                #Step1 {free space for user code}
@@ -71,6 +83,11 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
            \`\`\`
 
          - Ensure filenames are clear and descriptive, using consistent naming conventions.
+          - Introduce a clear distinction between **preview data** and **final data**:
+         - If creating for self-use:
+          - Exclude the solution field entirely in the preview JSON.
+         - If creating for others:
+          - Include the solution field in both the preview and final JSON.
 
       5. **Examples of Correct and Incorrect Output:**
 
@@ -168,59 +185,47 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          }
          \`\`\`
 
+   ### **For Self-Use**
+   \`\`\`json
+   {
+      "exerciseName": "Python Factorial Function",
+      "exerciseSummarization": "Implement a Python function to calculate the factorial of a number.",
+      "fileListSummarization": "The exercise includes one Python script with framework code.",
+      "exerciseFiles": [
+         {
+            "fileName": "factorial.py",
+            "content": "'''\\n   Exercise: Implement a Python function to calculate the factorial of a number.\\n   Instructions:\\n   1. Define a function that takes an integer as input.\\n   2. Return the factorial of the input number.\\n   3. Handle edge cases such as negative numbers.\\n'''\\n\\ndef factorial(n):\\n    # TODO: Add your implementation here\\n    pass\\n\\nif __name__ == \"__main__\":\\n    print(factorial(5))  # Expected output: 120"
+         }
+      ],
+      "conductorFiles": [
+         {
+            "fileName": "factorial_conductor.py",
+            "content": "'''\\n   #Step1 Define a function named 'factorial' that takes an integer parameter.\\n\\n   #Step2 Add logic to calculate the factorial of the input number.\\n\\n   #Step3 Handle edge cases (e.g., negative inputs).\\n'''"
+         }
+      ]
+   }
+   \`\`\`
 
-
-
-**Correct Example 3 **(For Myself)
-Clarifying Question Response:
-User: "I’m creating these exercises for myself to conduct."
- \`\`\`json
-
-{
-   "exerciseName": "Python Factorial Function",
-   "exerciseSummarization": "Implement a Python function to calculate the factorial of a number.",
-   "fileListSummarization": "The exercise includes one Python script with framework code for the factorial function.",
-   "exerciseFiles": [
-      {
-         "fileName": "factorial.py",
-         "content": "'''\\n   Exercise: Implement a Python function to calculate the factorial of a number.\\n   Instructions:\\n   1. Define a function that takes an integer as input.\\n   2. Return the factorial of the input number.\\n   3. Handle edge cases such as negative numbers.\\n\\n   Framework Code:\\n'''\\n\\ndef factorial(n):\\n    # TODO: Add your implementation here\\n    pass\\n\\nif __name__ == \"__main__\":\\n    print(factorial(5))  # Expected output: 120"
-      }
-   ],
-   "conductorFiles": [
-      {
-         "fileName": "factorial_conductor.py",
-         "content": "'''\\n   #Step1 Define a function named 'factorial' that takes an integer parameter.\\n\\n   #Step2 Add logic to calculate the factorial of the input number.\\n\\n   #Step3 Handle edge cases (e.g., negative inputs).\\n'''"
-      }
-   ]
-}
-      \`\`\`
-
-**Incorrect Example 3** (For Myself)
-Clarifying Question Response:
-User: "I’m creating these exercises for myself to conduct."
-
- \`\`\`json
-
-{
-   "exerciseName": "Python Factorial Function",
-   "exerciseSummarization": "Implement a Python function to calculate the factorial of a number.",
-   "fileListSummarization": "The exercise includes one Python script for the factorial function.",
-   "exerciseFiles": [
-      {
-         "fileName": "factorial.py",
-         "content": "'''\\n   Exercise: Implement a Python function to calculate the factorial of a number.\\n   Solution:\\n'''\\n\\ndef factorial(n):\\n    if n < 0:\\n        raise ValueError(\"Negative numbers are not allowed.\")\\n    if n == 0:\\n        return 1\\n    else:\\n        return n * factorial(n - 1)\\n\\nif __name__ == \"__main__\":\\n    print(factorial(5))  # Output: 120"
-      }
-   ],
-   "conductorFiles": [
-      {
-         "fileName": "factorial_conductor.py",
-         "content": "'''\\n   #Step1 Define a function named 'factorial' that takes an integer parameter.\\n\\n   #Step2 Add logic to calculate the factorial of the input number.\\n\\n   #Step3 Handle edge cases (e.g., negative inputs).\\n'''"
-      }
-   ]
-}
-         \`\`\`
-
-
+   ### **For Others**
+   \`\`\`json
+   {
+      "exerciseName": "Python Factorial Function",
+      "exerciseSummarization": "Implement a Python function to calculate the factorial of a number.",
+      "fileListSummarization": "The exercise includes one Python script with the complete solution.",
+      "exerciseFiles": [
+         {
+            "fileName": "factorial.py",
+            "content": "'''\\n   Exercise: Implement a Python function to calculate the factorial of a number.\\n   Solution:\\n'''\\n\\ndef factorial(n):\\n    if n < 0:\\n        raise ValueError(\"Negative numbers are not allowed.\")\\n    if n == 0:\\n        return 1\\n    else:\\n        return n * factorial(n - 1)\\n\\nif __name__ == \"__main__\":\\n    print(factorial(5))  # Output: 120"
+         }
+      ],
+      "conductorFiles": [
+         {
+            "fileName": "factorial_conductor.py",
+            "content": "'''\\n   #Step1 Define a function named 'factorial' that takes an integer parameter.\\n\\n   #Step2 Add logic to calculate the factorial of the input number.\\n\\n   #Step3 Handle edge cases (e.g., negative inputs).\\n'''"
+         }
+      ]
+   }
+   \`\`\`
 
       6. **Handling Missing Extensions or Tools:**
          - Always check if the exercise requires extensions, libraries, or tools.
