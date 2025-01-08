@@ -11,6 +11,7 @@ import { GetWorkspaceFiles } from './utils/tool-functions/get-workspace-files';
 import { GetExerciseList } from './utils/tool-functions/get-exercise-list';
 import { GetExercise } from './utils/tool-functions/get-exercise';
 import { ExerciseService } from './exercise-service';
+import { FetchPullRequests } from './utils/tool-functions/fetch-pull-requests';
 import {ChatResponsePartRenderer} from "@theia/ai-chat-ui/lib/browser/chat-response-part-renderer";
 import {ExerciseRenderer} from "./chat-response-renderer/exercise-renderer";
 import {bindViewContribution, FrontendApplicationContribution, WidgetFactory} from "@theia/core/lib/browser";
@@ -36,6 +37,7 @@ export default new ContainerModule(bind => {
     bind(ToolProvider).to(GetWorkspaceFiles);
     bind(ToolProvider).to(GetExerciseList);
     bind(ToolProvider).to(GetExercise);
+    bind(ToolProvider).to(FetchPullRequests);
 
     bind(ExerciseService).toSelf().inSingletonScope();
 

@@ -21,8 +21,29 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
             - **Step 1: Ask the User 3 Questions**
               - Always start by asking the user 3 questions to assess their skill level or let the user introduce themselves and analyze their skills based on the background:
 
-            - **Step 2: Analyze GitHub Pull Requests (Optional)**
-              - If the user provides a GitHub profile or repository, fetch their last 10 pull requests and evaluate:
+            - **Step 2: Analyze GitHub Pull Requests**
+              - Ask the user if they have a GitHub account and if they are willing to share it for analysis.:
+                - Use the \`FetchPullRequests\` tool to retrieve the last 10 pull requests:
+          - **Input**:
+            \`\`\`json
+            {
+                "username": "<GitHub Username>",
+            }
+            \`\`\`
+          - **Output**:
+            \`\`\`json
+            [
+              {
+                  "title": "Fix bug in feature X",
+                  "repository": "https://github.com/owner/repo",
+                  "url": "https://github.com/owner/repo/pull/123",
+                  "createdAt": "2025-01-01T12:34:56Z",
+                  "updatedAt": "2025-01-07T15:30:00Z"
+              },
+              ...
+            ]
+            \`\`\`
+            Evaluate the pull requests to determine the user's skill level based on:
                 - Code complexity and structure
                 - Use of advanced features (e.g., libraries, patterns)
                 - Areas for improvement (e.g., edge cases, clean code practices)

@@ -28,7 +28,7 @@ import {
 } from '@theia/ai-core';
 import { injectable } from '@theia/core/shared/inversify';
 import { exerciseCreatorTemplate } from "./template";
-import { CREATE_FILE_FUNCTION_ID, GET_FILE_CONTENT_FUNCTION_ID, GET_WORKSPACE_FILES_FUNCTION_ID } from '../utils/tool-functions/function-names';
+import { CREATE_FILE_FUNCTION_ID, FETCH_PULL_REQUESTS_FUNCTION_ID, GET_FILE_CONTENT_FUNCTION_ID, GET_WORKSPACE_FILES_FUNCTION_ID } from '../utils/tool-functions/function-names';
 import { ChatRequestModelImpl, MarkdownChatResponseContentImpl } from "@theia/ai-chat";
 import { ExerciseChatResponseContentImpl } from "../chat-response-renderer/exercise-renderer";
 import { ExerciseChatResponse } from "./types";
@@ -59,7 +59,7 @@ export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent imp
         this.agentSpecificVariables = [];
 
         // Register functions relevant for coding exercises, including file access and code execution
-        this.functions = [CREATE_FILE_FUNCTION_ID, GET_FILE_CONTENT_FUNCTION_ID, GET_WORKSPACE_FILES_FUNCTION_ID];
+        this.functions = [CREATE_FILE_FUNCTION_ID, GET_FILE_CONTENT_FUNCTION_ID, GET_WORKSPACE_FILES_FUNCTION_ID, FETCH_PULL_REQUESTS_FUNCTION_ID];
     }
 
     protected override async getSystemMessageDescription(): Promise<SystemMessageDescription | undefined> {

@@ -5,4 +5,5 @@ export const COMPARE_FILES_CONTENT_FUNCTION_ID = 'compareFilesContent'
 export const GET_EXERCISE_FUNCTION_ID = 'getExercise';
 export const ADD_EXERCISE_FUNCTION_ID = 'addExercise';
 export const UPDATE_EXERCISE_FUNCTION_ID = 'updateExercise';
-export const GET_EXERCISE_LIST_FUNCTION_ID = 'getExerciseList'
+export const GET_EXERCISE_LIST_FUNCTION_ID = 'getExerciseList';
+export const FETCH_PULL_REQUESTS_FUNCTION_ID = 'fetchPullRequests';
