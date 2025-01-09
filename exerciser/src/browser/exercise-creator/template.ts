@@ -1,4 +1,5 @@
 import { PromptTemplate } from '@theia/ai-core/lib/common';
+import { FETCH_PULL_REQUESTS_FUNCTION_ID } from '../utils/tool-functions/function-names';
 export const exerciseCreatorTemplate = <PromptTemplate>{
    id: 'coding-exercise-system',
    template: `
@@ -23,7 +24,7 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
 
             - **Step 2: Analyze GitHub Pull Requests**
               - Ask the user if they have a GitHub account and if they are willing to share it for analysis.:
-                - Use the \`FetchPullRequests\` tool to retrieve the last 10 pull requests:
+                - Use the tool function ~{${FETCH_PULL_REQUESTS_FUNCTION_ID}} to retrieve the last 10 pull requests:
           - **Input**:
             \`\`\`json
             {
