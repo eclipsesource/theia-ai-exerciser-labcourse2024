@@ -31,7 +31,6 @@ export class FetchPullRequests implements ToolProvider {
                     return `Error: ${error.message}`;
                 }
             }
-            
         };
     }
 

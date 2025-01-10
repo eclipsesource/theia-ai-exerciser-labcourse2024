@@ -25,6 +25,8 @@ import {ExerciseService} from "../exercise-service";
 import {Exercise} from "../exercise-service/types";
 import {FileService} from "@theia/filesystem/lib/browser/file-service";
 import {WorkspaceService} from "@theia/workspace/lib/browser";
+import { UntitledResourceResolver } from '@theia/core';
+import { MonacoEditorProvider } from '@theia/monaco/lib/browser/monaco-editor-provider';
 
 export interface ExerciseChatResponseContent
     extends ChatResponseContent {
@@ -80,6 +82,11 @@ export class ExerciseRenderer implements ChatResponsePartRenderer<ExerciseChatRe
     @inject(WorkspaceService)
     protected readonly workspaceService: WorkspaceService;
 
+    @inject(MonacoEditorProvider)
+    protected readonly editorProvider: MonacoEditorProvider;
+    @inject(UntitledResourceResolver)
+    protected readonly untitledResourceResolver: UntitledResourceResolver;
+
     async fileCreation(exercise: Exercise): Promise<void> {
         const wsRoots = await this.workspaceService.roots;
 
@@ -129,9 +136,12 @@ export class ExerciseRenderer implements ChatResponsePartRenderer<ExerciseChatRe
         return (
             <div style={{display: "flex", flexDirection: "column"}}>
                 <ExerciseList
-                    files={caller === "creator" ? response.content.exerciseFiles : response.content.conductorFiles}
+                    type={caller}
+                    files={caller === "creator" ? [...response.content.exerciseFiles, ...response.content.conductorFiles] : response.content.conductorFiles}
                     buttonContent={caller === "creator" ? "Create Exercise" : "Generate Exercise to Workspace"}
                     callback={caller === "creator" ? createExerciseCallback : generateExerciseFileCallback}
+                    untitledResourceResolver={this.untitledResourceResolver}
+                    editorProvider={this.editorProvider}
                 />
             </div>
         )
