@@ -37,6 +37,10 @@ import {
     // generateUuid
 } from '@theia/core';
 
+import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-service';
+
+
+
 
 interface ParsedCommand {
     type: 'terminal-command' | 'no-command'
@@ -45,12 +49,16 @@ interface ParsedCommand {
     message?: string;
 }
 
+
 @injectable()
 export class TerminalChatAgent extends AbstractTextToModelParsingChatAgent<ParsedCommand> implements ChatAgent {
     @inject(CommandRegistry)
     protected commandRegistry: CommandRegistry;
     @inject(MessageService)
     protected messageService: MessageService;
+    @inject(TerminalService)
+    protected terminalService: TerminalService;
+
     readonly name: string;
     readonly description: string;
     readonly variables: string[];
@@ -101,33 +109,49 @@ export class TerminalChatAgent extends AbstractTextToModelParsingChatAgent<Parse
 
     protected createResponseContent(parsedCommand: any, request: ChatRequestModelImpl): ChatResponseContent {
 
-        if (parsedCommand) {
-            // const args = parsedCommand.arguments !== undefined &&
-            //     parsedCommand.arguments.length > 0
-            //     ? parsedCommand.arguments
-            //     : undefined;
-            // const id = `ai-command-${generateUuid()}`;
-            //const commandArgs = Array.isArray(parsedCommand.arguments) ? parsedCommand.arguments : [];
-            // const commandArgs = parsedCommand.arguments !== undefined && parsedCommand.arguments.length > 0 ? parsedCommand.arguments : [];
-            //const args = [id, ...commandArgs];
-
-            const customCallback: CustomCallback = {
-                label: 'Copy the command to terminal', 
-                callback: () => this.commandCallback(),
+        if (parsedCommand && parsedCommand.commandId) {
+            const insertCallback: CustomCallback = {
+                label: 'Insert Command in Terminal',
+                callback: () => this.insertCommandToTerminal(parsedCommand.commandId, parsedCommand.arguments),
             };
+
+            const insertAndRunCallback: CustomCallback = {
+                label: 'Insert and Run Command',
+                callback: () => this.insertAndRunCommand(parsedCommand.commandId, parsedCommand.arguments),
+            };
+
             return new HorizontalLayoutChatResponseContentImpl([
                 new MarkdownChatResponseContentImpl(
-                    'I found this command that might help you: test terminal command'
+                    `I found this command: \`${parsedCommand.commandId} ${parsedCommand.arguments?.join(' ') || ''}\``
                 ),
-                new CommandChatResponseContentImpl({id: 'custom-command'}, customCallback)
+                new CommandChatResponseContentImpl({ id: 'insert-command' }, insertCallback),
+                new CommandChatResponseContentImpl({ id: 'insert-run-command' }, insertAndRunCallback),
             ]);
         } else {
             return new MarkdownChatResponseContentImpl('Sorry, I can\'t find a suitable command for you');
         }
     }
 
-    protected async commandCallback(): Promise<void> {
-        console.log("***** test *****")
+    protected async insertCommandToTerminal(command: string, args: string[] = []): Promise<void> {
+        const terminal = this.terminalService.currentTerminal;
+        if (terminal) {
+            const fullCommand = `${command} ${args.join(' ')}`.trim();
+            terminal.sendText(command); // No newline, waits for user to press Enter
+            this.messageService.info(`Command inserted in terminal: ${fullCommand}`);
+        } else {
+            this.messageService.error('No active terminal found.');
+        }
+    }
+
+    protected async insertAndRunCommand(command: string, args: string[] = []): Promise<void> {
+        const terminal = this.terminalService.currentTerminal;
+        if (terminal) {
+            const fullCommand = `${command} ${args.join(' ')}`.trim();
+            terminal.sendText(command + '\n'); // Appends newline, automatically runs the command
+            this.messageService.info(`Command executed: ${fullCommand}`);
+        } else {
+            this.messageService.error('No active terminal found.');
+        }
     }
 }
 
