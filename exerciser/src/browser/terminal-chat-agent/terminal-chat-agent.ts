@@ -15,7 +15,12 @@
 // *****************************************************************************
 
 import { inject, injectable } from '@theia/core/shared/inversify';
-import { AbstractTextToModelParsingChatAgent, ChatAgent, SystemMessageDescription } from '@theia/ai-chat/lib/common';
+import {
+    AbstractTextToModelParsingChatAgent,
+    ChatAgent,
+    CommandChatResponseContentImpl,
+    SystemMessageDescription
+} from '@theia/ai-chat/lib/common';
 import {
     PromptTemplate,
     AgentSpecificVariables
@@ -26,7 +31,6 @@ import { terminalChatAgentTemplate } from "./template";
 import {
     ChatRequestModelImpl,
     ChatResponseContent,
-    CommandChatResponseContentImpl,
     CustomCallback,
     HorizontalLayoutChatResponseContentImpl,
     MarkdownChatResponseContentImpl,
@@ -39,16 +43,12 @@ import {
 
 import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-service';
 
-
-
-
 interface ParsedCommand {
     type: 'terminal-command' | 'no-command'
     commandId: string;
     arguments?: string[];
     message?: string;
 }
-
 
 @injectable()
 export class TerminalChatAgent extends AbstractTextToModelParsingChatAgent<ParsedCommand> implements ChatAgent {
@@ -100,30 +100,33 @@ export class TerminalChatAgent extends AbstractTextToModelParsingChatAgent<Parse
      * If there was no json in the text, return a no-command response.
      */
     protected async parseTextResponse(text: string): Promise<any> {
-        const jsonMatch = text.match(/(\{[\s\S]*\})/);
-        const jsonString = jsonMatch ? jsonMatch[1] : `[]`;
-        const parsedCommand = JSON.parse(jsonString);
+        const jsonMatch = text.match(/{(?:[^{}]|{[^{}]*})*}/g) || [];
+        const parsedCommand: any[] = [];
+        jsonMatch.forEach(match => {
+            parsedCommand.push(JSON.parse(match));
+        })
         return parsedCommand;
     }
 
 
     protected createResponseContent(parsedCommand: any, request: ChatRequestModelImpl): ChatResponseContent {
-
-        if (parsedCommand && parsedCommand.commandId) {
+        if (parsedCommand) {
             const insertCallback: CustomCallback = {
-                label: 'Insert Command in Terminal',
-                callback: () => this.insertCommandToTerminal(parsedCommand.commandId, parsedCommand.arguments),
+                label: 'Copy the command to terminal',
+                callback: () => this.insertCommandToTerminal("touch my_file.txt"),
             };
-
             const insertAndRunCallback: CustomCallback = {
-                label: 'Insert and Run Command',
-                callback: () => this.insertAndRunCommand(parsedCommand.commandId, parsedCommand.arguments),
+                label: 'Copy the command to terminal',
+                callback: () => this.insertAndRunCommand("touch asdasdas.txt"),
             };
-
+            const a = parsedCommand.map((a: any) => new MarkdownChatResponseContentImpl(
+                a.command + " ||||| " + a.description
+            ))
             return new HorizontalLayoutChatResponseContentImpl([
                 new MarkdownChatResponseContentImpl(
-                    `I found this command: \`${parsedCommand.commandId} ${parsedCommand.arguments?.join(' ') || ''}\``
+                    'I found this command that might help you: test terminal command'
                 ),
+                ...a,
                 new CommandChatResponseContentImpl({ id: 'insert-command' }, insertCallback),
                 new CommandChatResponseContentImpl({ id: 'insert-run-command' }, insertAndRunCallback),
             ]);
