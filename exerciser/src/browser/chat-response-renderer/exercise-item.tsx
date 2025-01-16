@@ -42,6 +42,7 @@ export const ExerciseItem: React.FC<Props> = ({file, untitledResourceResolver, e
                         content={file.content}
                         untitledResourceResolver={untitledResourceResolver}
                         editorProvider={editorProvider}
+                        language={`.${file.fileName.split(".").pop()}`}
                         contextMenuCallback={e => {
                         }}></CodeWrapper>
                 </div>
