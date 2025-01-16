@@ -249,7 +249,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
      * Retrieves the text of the currently opened file in the editor.
      * @returns The text of the currently active file or `undefined` if no editor is active.
      */
-    public async getCurrentFileText(): Promise<string | undefined> {
+     public async getCurrentFileText(): Promise<{ fileText: string, linesWithNumbers: { lineNumber: number; content: string }[], lineCount: number } | undefined> {
         const currentEditorWidget = this.editorManager.currentEditor;
         if (!currentEditorWidget) {
             console.error('No active editor found.');
@@ -257,7 +257,19 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
         }
 
         const editor: TextEditor = currentEditorWidget.editor;
-        return editor.document.getText();
+        const fileText = editor.document.getText();
+         // Split the content into lines and attach line numbers
+        const lines = fileText.split(/\r?\n/);
+        const linesWithNumbers = lines.map((content, index) => ({
+        lineNumber: index + 1,
+        content,
+     }));
+
+     return {
+        fileText,
+        linesWithNumbers,
+        lineCount: lines.length,
+      };
     }
 
     protected override async getSystemMessageDescription(): Promise<SystemMessageDescription | undefined> {
@@ -268,11 +280,24 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             if (!currentFileText) {
                 this.logger.warn('No active file found. Skipping currentFileText in the prompt.');
             }
+
+            const { fileText, linesWithNumbers, lineCount } = currentFileText || {
+                fileText: 'No active file content available.',
+                linesWithNumbers: [],
+                lineCount: 0,
+            };
+    
+            const numberedLines = linesWithNumbers
+                .map(({ lineNumber, content }) => `Line ${lineNumber}: ${content}`)
+                .join('\n');
+    
             const exercises = JSON.stringify(this.exerciseService.allExercises)
 
             const resolvedPrompt = await this.promptService.getPrompt(exerciseConductorTemplate.id, {
                 exercisesInService: exercises,
-                currentFileText: currentFileText || 'No active file content available.',
+                currentFileText: fileText,
+                numberedLines: numberedLines || 'No active file content available.',
+                lineCount: lineCount,
             });
 
             return resolvedPrompt

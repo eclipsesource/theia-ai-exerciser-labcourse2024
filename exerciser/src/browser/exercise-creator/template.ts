@@ -63,6 +63,10 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          - If the user selects **Option 3: Create an Exercise Based on GitHub Analysis**:
             - Fetch and analyze their last 10 pull requests using the GitHub API.
             - Identify improvement areas and generate exercises to address those specific challenges.
+            - Focus on the programming languages and topics from the GitHub contributions, not the initial user requested topic.
+            - Ensure the exercises are relevant to the user's GitHub contributions and provide opportunities for growth and learning.
+            - The exercise should be in the same programming language as the user's GitHub contributions and focus on areas where the user can improve.
+            
 
     3. **Assessing Difficulty Level:**
          - Before generating an exercise, always assess the user's skill level to determine the appropriate difficulty level (Easy, Medium, or Difficult).

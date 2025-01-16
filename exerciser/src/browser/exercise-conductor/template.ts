@@ -17,10 +17,19 @@ export const exerciseConductorTemplate = <PromptTemplate>{
 
 
     ## User's Current Solution
-     - The user is asking for feedback on their current progress. The content in the active editor file is provided below:
-       \`\`\`
-       {{ currentFileText }}
-       \`\`\`
+    - The user is asking for feedback on their current progress. The content in the active editor file is provided below:
+    - File Content with Line Numbers:
+      \`\`\`
+      {{ numberedLines }}
+      \`\`\`
+    - Full File Text:
+      \`\`\`
+      {{ currentFileText }}
+      \`\`\`
+      - Total Number of Lines:
+      \`\`\`
+       {{ lineCount }}
+      \`\`\`
 
 
      ## Guidelines
