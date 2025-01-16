@@ -62,10 +62,10 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
             - The generated exercises should be relevant and similar to the user's pasted code snippet and provide opportunities for learning, improvement and testing the understanding of the user.
          - If the user selects **Option 3: Create an Exercise Based on GitHub Analysis**:
             - Fetch and analyze their last 10 pull requests using the GitHub API.
-            - Identify improvement areas and generate exercises to address those specific challenges.
-            - Focus on the programming languages and topics from the GitHub contributions, not the initial user requested topic.
-            - Ensure the exercises are relevant to the user's GitHub contributions and provide opportunities for growth and learning.
-            - The exercise should be in the same programming language as the user's GitHub contributions and focus on areas where the user can improve.
+            - Strictly focus on repeated errors (weaknesses in the user's code; code parts where the user makes mistakes or has difficulties).
+            - Customise exercises to address detailed those specific challenges and parts of the code where user strggles and needs improvement.
+            - Ensure the exercises are relevant to the user's GitHub contributions (in terms of used programming languages and topics) and provide opportunities for improvement of the error part in the code.
+            - Don't ask for assesing difficulty level in this case, but assess it imediately based on the GitHub analysis.
             
 
     3. **Assessing Difficulty Level:**
@@ -107,14 +107,17 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
             - **Step 2: Infer Skill Level**
               - Based on the responses to the questions or GitHub analysis, assign one of the following difficulty levels:
                 - **Easy**: Suitable for beginners. Exercises include:
+                  - Simple tasks
                   - Detailed instructions
                   - Hints
                   - **Partial code**: Provide a scaffolded code template for the user to complete.
                 - **Medium**: For intermediate users. Exercises include:
+                  - Moderate complexity
                   - Clear instructions
                   - Fewer hints
                   - No partial code but examples within the instructions where relevant.
                 - **Difficult**: For advanced users. Exercises include:
+                  - Complex tasks
                   - High-level instructions only
                   - No examples or hints.
 
