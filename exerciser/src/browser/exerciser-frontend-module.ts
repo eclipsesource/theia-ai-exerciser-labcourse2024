@@ -17,6 +17,7 @@ import {ExerciseRenderer} from "./chat-response-renderer/exercise-renderer";
 import {bindViewContribution, FrontendApplicationContribution, WidgetFactory} from "@theia/core/lib/browser";
 import {WidgetContribution} from "./widget/widget-contribution";
 import {ExerciserWidget} from "./widget/exerciser-widget";
+import {TerminalCommandRenderer} from "./chat-response-renderer/terminal-command-renderer";
 
 
 export default new ContainerModule(bind => {
@@ -42,6 +43,7 @@ export default new ContainerModule(bind => {
     bind(ExerciseService).toSelf().inSingletonScope();
 
     bind(ChatResponsePartRenderer).to(ExerciseRenderer).inSingletonScope();
+    bind(ChatResponsePartRenderer).to(TerminalCommandRenderer).inSingletonScope();
 
     bindViewContribution(bind, WidgetContribution);
     bind(FrontendApplicationContribution).toService(WidgetContribution);

@@ -18,7 +18,6 @@ import { inject, injectable } from '@theia/core/shared/inversify';
 import {
     AbstractTextToModelParsingChatAgent,
     ChatAgent,
-    CommandChatResponseContentImpl,
     SystemMessageDescription
 } from '@theia/ai-chat/lib/common';
 import {
@@ -31,17 +30,17 @@ import { terminalChatAgentTemplate } from "./template";
 import {
     ChatRequestModelImpl,
     ChatResponseContent,
-    CustomCallback,
-    HorizontalLayoutChatResponseContentImpl,
     MarkdownChatResponseContentImpl,
 } from '@theia/ai-chat';
 import {
-    CommandRegistry,
+    CommandService,
     MessageService,
     // generateUuid
 } from '@theia/core';
 
-import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-service';
+import {TerminalCommandChatResponseContentImpl} from "../chat-response-renderer/terminal-command-renderer";
+import {TerminalService} from "@theia/terminal/lib/browser/base/terminal-service";
+import {TerminalWidgetFactoryOptions} from "@theia/terminal/lib/browser/terminal-widget-impl"
 
 interface ParsedCommand {
     type: 'terminal-command' | 'no-command'
@@ -52,8 +51,8 @@ interface ParsedCommand {
 
 @injectable()
 export class TerminalChatAgent extends AbstractTextToModelParsingChatAgent<ParsedCommand> implements ChatAgent {
-    @inject(CommandRegistry)
-    protected commandRegistry: CommandRegistry;
+    @inject(CommandService)
+    protected commandService: CommandService;
     @inject(MessageService)
     protected messageService: MessageService;
     @inject(TerminalService)
@@ -111,50 +110,37 @@ export class TerminalChatAgent extends AbstractTextToModelParsingChatAgent<Parse
 
     protected createResponseContent(parsedCommand: any, request: ChatRequestModelImpl): ChatResponseContent {
         if (parsedCommand) {
-            const insertCallback: CustomCallback = {
-                label: 'Copy the command to terminal',
-                callback: () => this.insertCommandToTerminal("touch my_file.txt"),
-            };
-            const insertAndRunCallback: CustomCallback = {
-                label: 'Copy the command to terminal',
-                callback: () => this.insertAndRunCommand("touch asdasdas.txt"),
-            };
-            const a = parsedCommand.map((a: any) => new MarkdownChatResponseContentImpl(
-                a.command + " ||||| " + a.description
-            ))
-            return new HorizontalLayoutChatResponseContentImpl([
-                new MarkdownChatResponseContentImpl(
-                    'I found this command that might help you: test terminal command'
-                ),
-                ...a,
-                new CommandChatResponseContentImpl({ id: 'insert-command' }, insertCallback),
-                new CommandChatResponseContentImpl({ id: 'insert-run-command' }, insertAndRunCallback),
-            ]);
+            return new TerminalCommandChatResponseContentImpl({
+                commands: parsedCommand,
+                insertCallback: this.insertCommand.bind(this),
+                insertAndRunCallback: this.insertAndRunCommand.bind(this)
+            });
         } else {
             return new MarkdownChatResponseContentImpl('Sorry, I can\'t find a suitable command for you');
         }
     }
 
-    protected async insertCommandToTerminal(command: string, args: string[] = []): Promise<void> {
-        const terminal = this.terminalService.currentTerminal;
-        if (terminal) {
-            const fullCommand = `${command} ${args.join(' ')}`.trim();
-            terminal.sendText(command); // No newline, waits for user to press Enter
-            this.messageService.info(`Command inserted in terminal: ${fullCommand}`);
-        } else {
-            this.messageService.error('No active terminal found.');
+    protected async insertCommand(command: string): Promise<void> {
+        let terminal = this.terminalService.currentTerminal;
+        if (!terminal) {
+            terminal = await this.createTerminal();
         }
+        terminal.sendText(command);
     }
 
-    protected async insertAndRunCommand(command: string, args: string[] = []): Promise<void> {
-        const terminal = this.terminalService.currentTerminal;
-        if (terminal) {
-            const fullCommand = `${command} ${args.join(' ')}`.trim();
-            terminal.sendText(command + '\n'); // Appends newline, automatically runs the command
-            this.messageService.info(`Command executed: ${fullCommand}`);
-        } else {
-            this.messageService.error('No active terminal found.');
+    protected async insertAndRunCommand(command: string): Promise<void> {
+        let terminal = this.terminalService.currentTerminal;
+        if (!terminal) {
+            terminal = await this.createTerminal();
         }
+        terminal.sendText(command + '\n');
+    }
+
+    async createTerminal() {
+        const terminal = await this.terminalService.newTerminal(<TerminalWidgetFactoryOptions>{ created: new Date().toString() });
+        await terminal.start();
+        this.terminalService.open(terminal);
+        return terminal;
     }
 }
 
