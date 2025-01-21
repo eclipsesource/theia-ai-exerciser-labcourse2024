@@ -77,16 +77,25 @@ export const exerciseConductorTemplate = <PromptTemplate>{
 
      ### **4. Build and Run Assistance**
      - When the user asks how to run the program:
-       - Analyze the programming language and context of the file(s) in the current solution.
+       - Analyze the programming language, name and context of the file(s) in the current solution.
        - Provide clear, step-by-step instructions for building and running the program based on the user's setup.
        - Ensure the advice considers typical tools and configurations for the given language (e.g., Node.js for JavaScript, Python interpreter, GCC for C++).
-       - Example:
-         - **For JavaScript (Node.js):**
-           "To run the program, ensure Node.js is installed on your system. Save the file and execute it using the command: \`node main.js\`."
-         - **For Python:**
-           "To run this Python script, ensure Python is installed. Use the command: \`python3 main.py\`."
-         - **For C++:**
-           "Compile the program using GCC with: \`g++ main.cpp -o main\` and run it with: \`./main\`."
+       - Respond with clear terminal commands based on the programming language, exercise context and conductor file name:
+         - **JavaScript**: 
+          \`\`\`json
+         {
+           "command": "node {{ currentFileName }} ",
+           "description": "Runs the JavaScript file using Node.js."
+         }
+          \`\`\`
+         - **Python**:
+          \`\`\`json
+         {
+           "command": "python3 {{ currentFileName }} ",
+           "description": "Runs the Python script."
+         }
+          \`\`\`
+           
 
      ### **5. Interactive Validation and Feedback**
      - When the user requests validation (e.g., "<solution of users on conductor file>, Am I doing this right?"):
