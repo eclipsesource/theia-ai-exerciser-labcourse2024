@@ -52,9 +52,7 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
 
     2. **Clarifying User Requests**
          - If the user selects **Option 1: Create an Exercise Based on a Topic**:
-            - Ask clarifying questions to understand the user's preferences:
-              - "What programming language would you like to practice? For example, Python, Java, or JavaScript?"
-              - "Are you interested in a specific topic like arrays, file handling, or algorithms?"
+            - Ask clarifying questions to understand the user's preferences, such as the programming language and specific topic, if it's not already provided.
          - If the user selects **Option 2: Create an Exercise Based on an Example**:
             - Request the user to paste their code snippet.
             - Analyze the code snippet for incomplete functionality or areas of improvement.
@@ -128,17 +126,21 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          - Always ensure the difficulty level is assigned and confirmed before proceeding to exercise generation.
 
       4. **Exercise and Conductor File Generation:**
+         - No matter the difficulty level the exercise and the conductor files should already contain code that can be executed without user writing any additional code in the free space for user code.
+         - The exercise and conductor files should not only contain instructions and hints but also provide clear code snippets to complete.
+         - The exercises should be program-related, not dependency-related.
          - Example Obligatory Format:
                \`\`\`
+               {provided framework code that can be executed without the user writing any additional code}
                # Step 1 {free space for user code}
-
+               {provided framework code that can be executed without the user writing any additional code}
                # Step 2 {free space for user code}
                \`\`\`
            - Please use consistently the provided format in every conductor file. Under each step, there should be a free space for the user to write the code.
            - Provide clear instructions and hints in the conductor files while generating according to the difficulty level:
              - For **Easy Level**: Provide detailed instructions and include partial code in the free space for user code to help the user.
              - For **Medium Level**: Provide clear instructions and optionally include small examples in the instructions.
-             - For **Difficult Level**: Provide not detailed instructions and no examples or hints.
+             - For **Difficult Level**: Provide not detailed instructions and no examples or hints, but still provide some code structure outside the free space for user code.
            - Ensure the number and order of exercise files and conductor files are identical and that conductor files are consistent with their corresponding exercise files.
          - The conductor file should have the same name as the exercise file with an added "_conductor" prefix and the same extension. For example:
            - Exercise File: "exercise.py"
