@@ -8,9 +8,9 @@ import { ExerciseOverview,Exercise } from '../exercise-service/types';
 import { ExerciseList } from './widget-renderer/exercise-list';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
-import {
-    AI_CHAT_NEW_CHAT_WINDOW_WITH_PINNED_AGENT_COMMAND
-} from "@theia/ai-chat-ui/lib/browser/chat-view-commands";
+// import {
+//     AI_CHAT_NEW_CHAT_WINDOW_WITH_PINNED_AGENT_COMMAND
+// } from "@theia/ai-chat-ui/lib/browser/chat-view-commands";
 import {AI_CHAT_TOGGLE_COMMAND_ID} from "@theia/ai-chat-ui/lib/browser/ai-chat-ui-contribution";
 import {ChatAgentService} from "@theia/ai-chat";
 
@@ -108,9 +108,9 @@ export class ExerciserWidget extends ReactWidget {
 
         // TODO - not working if undefined is not passed as first argument
         const handler = async (agent: "ExerciseCreator" | "ExerciseConductor") => {
-            const chatAgent = this.chatAgentService.getAgent(agent);
+            // const chatAgent = this.chatAgentService.getAgent(agent);
             this.commandService.executeCommand(AI_CHAT_TOGGLE_COMMAND_ID)
-            this.commandService.executeCommand(AI_CHAT_NEW_CHAT_WINDOW_WITH_PINNED_AGENT_COMMAND.id, undefined, chatAgent)
+            // this.commandService.executeCommand(AI_CHAT_NEW_CHAT_WINDOW_WITH_PINNED_AGENT_COMMAND.id, undefined, chatAgent)
         }
 
         return <div id='widget-container' style={{
