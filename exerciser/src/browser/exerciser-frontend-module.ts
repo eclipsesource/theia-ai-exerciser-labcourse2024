@@ -21,6 +21,7 @@ import {LineIconContribution} from "./editor-interface/line-icon";
 import "../../src/browser/editor-interface/line-icon-style.css";
 import { CommandContribution } from '@theia/core/lib/common';
 import { ExerciseHintCommandContribution } from './editor-interface/line-icon-commands';
+import {TerminalCommandRenderer} from "./chat-response-renderer/terminal-command-renderer";
 export default new ContainerModule(bind => {
     bind(ExerciseCreatorChatAgent).toSelf().inSingletonScope;
     bind(Agent).toService(ExerciseCreatorChatAgent);
@@ -44,6 +45,7 @@ export default new ContainerModule(bind => {
     bind(ExerciseService).toSelf().inSingletonScope();
 
     bind(ChatResponsePartRenderer).to(ExerciseRenderer).inSingletonScope();
+    bind(ChatResponsePartRenderer).to(TerminalCommandRenderer).inSingletonScope();
 
     bindViewContribution(bind, WidgetContribution);
     bind(FrontendApplicationContribution).toService(WidgetContribution);

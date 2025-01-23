@@ -1,11 +1,16 @@
 import * as React from '@theia/core/shared/react';
 import {ExerciseFile} from "../exercise-service/types";
+import {CodeWrapper} from "@theia/ai-chat-ui/lib/browser/chat-response-renderer";
+import {UntitledResourceResolver} from "@theia/core";
+import {MonacoEditorProvider} from "@theia/monaco/lib/browser/monaco-editor-provider";
 
 export type Props = {
-    file: ExerciseFile
+    file: ExerciseFile;
+    untitledResourceResolver: UntitledResourceResolver;
+    editorProvider: MonacoEditorProvider;
 }
 
-export const ExerciseItem: React.FC<Props> = ({file}) => {
+export const ExerciseItem: React.FC<Props> = ({file, untitledResourceResolver, editorProvider}) => {
     const [isOpen, setIsOpen] = React.useState(false)
 
     const showFileContent = () => {
@@ -13,14 +18,12 @@ export const ExerciseItem: React.FC<Props> = ({file}) => {
     }
 
     return (
-        <div style={{
+        <div key={file.fileName} style={{
             display: "flex",
             flexDirection: "column",
             flexGrow: 1,
             padding: 10,
-            borderRadius: 4,
-            border: "1px solid var(--theia-sideBarSectionHeader-border)",
-        }} className={"separator-border fa-border "}>
+        }}>
             <div style={{
                 display: "flex",
                 flexDirection: "row",
@@ -34,10 +37,14 @@ export const ExerciseItem: React.FC<Props> = ({file}) => {
                 )}
             </div>
             {isOpen && (
-                <div>
-                    {file.content.split("\n").map(line => {
-                        return <p>{line}</p>
-                    })}
+                <div className="theia-CodePartRenderer-bottom">
+                    <CodeWrapper
+                        content={file.content}
+                        untitledResourceResolver={untitledResourceResolver}
+                        editorProvider={editorProvider}
+                        language={`.${file.fileName.split(".").pop()}`}
+                        contextMenuCallback={e => {
+                        }}></CodeWrapper>
                 </div>
             )}
         </div>

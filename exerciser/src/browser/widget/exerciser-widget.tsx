@@ -9,7 +9,7 @@ import { ExerciseList } from './widget-renderer/exercise-list';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import {
-    AI_CHAT_NEW_CHAT_WINDOW_WITH_PINNED_AGENT_COMMAND
+   AI_CHAT_NEW_CHAT_WINDOW_WITH_PINNED_AGENT_COMMAND
 } from "@theia/ai-chat-ui/lib/browser/chat-view-commands";
 import {AI_CHAT_TOGGLE_COMMAND_ID} from "@theia/ai-chat-ui/lib/browser/ai-chat-ui-contribution";
 import {ChatAgentService} from "@theia/ai-chat";

@@ -15,7 +15,11 @@
 // *****************************************************************************
 
 import { inject, injectable } from '@theia/core/shared/inversify';
-import { AbstractTextToModelParsingChatAgent, ChatAgent, SystemMessageDescription } from '@theia/ai-chat/lib/common';
+import {
+    AbstractTextToModelParsingChatAgent,
+    ChatAgent,
+    SystemMessageDescription
+} from '@theia/ai-chat/lib/common';
 import {
     PromptTemplate,
     AgentSpecificVariables
@@ -26,17 +30,17 @@ import { terminalChatAgentTemplate } from "./template";
 import {
     ChatRequestModelImpl,
     ChatResponseContent,
-    CommandChatResponseContentImpl,
-    CustomCallback,
-    HorizontalLayoutChatResponseContentImpl,
     MarkdownChatResponseContentImpl,
 } from '@theia/ai-chat';
 import {
-    CommandRegistry,
+    CommandService,
     MessageService,
     // generateUuid
 } from '@theia/core';
 
+import {TerminalCommandChatResponseContentImpl} from "../chat-response-renderer/terminal-command-renderer";
+import {TerminalService} from "@theia/terminal/lib/browser/base/terminal-service";
+import {TerminalWidgetFactoryOptions} from "@theia/terminal/lib/browser/terminal-widget-impl"
 
 interface ParsedCommand {
     type: 'terminal-command' | 'no-command'
@@ -47,10 +51,13 @@ interface ParsedCommand {
 
 @injectable()
 export class TerminalChatAgent extends AbstractTextToModelParsingChatAgent<ParsedCommand> implements ChatAgent {
-    @inject(CommandRegistry)
-    protected commandRegistry: CommandRegistry;
+    @inject(CommandService)
+    protected commandService: CommandService;
     @inject(MessageService)
     protected messageService: MessageService;
+    @inject(TerminalService)
+    protected terminalService: TerminalService;
+
     readonly name: string;
     readonly description: string;
     readonly variables: string[];
@@ -92,42 +99,48 @@ export class TerminalChatAgent extends AbstractTextToModelParsingChatAgent<Parse
      * If there was no json in the text, return a no-command response.
      */
     protected async parseTextResponse(text: string): Promise<any> {
-        const jsonMatch = text.match(/(\{[\s\S]*\})/);
-        const jsonString = jsonMatch ? jsonMatch[1] : `[]`;
-        const parsedCommand = JSON.parse(jsonString);
+        const jsonMatch = text.match(/{(?:[^{}]|{[^{}]*})*}/g) || [];
+        const parsedCommand: any[] = [];
+        jsonMatch.forEach(match => {
+            parsedCommand.push(JSON.parse(match));
+        })
         return parsedCommand;
     }
 
 
     protected createResponseContent(parsedCommand: any, request: ChatRequestModelImpl): ChatResponseContent {
-
         if (parsedCommand) {
-            // const args = parsedCommand.arguments !== undefined &&
-            //     parsedCommand.arguments.length > 0
-            //     ? parsedCommand.arguments
-            //     : undefined;
-            // const id = `ai-command-${generateUuid()}`;
-            //const commandArgs = Array.isArray(parsedCommand.arguments) ? parsedCommand.arguments : [];
-            // const commandArgs = parsedCommand.arguments !== undefined && parsedCommand.arguments.length > 0 ? parsedCommand.arguments : [];
-            //const args = [id, ...commandArgs];
-
-            const customCallback: CustomCallback = {
-                label: 'Copy the command to terminal', 
-                callback: () => this.commandCallback(),
-            };
-            return new HorizontalLayoutChatResponseContentImpl([
-                new MarkdownChatResponseContentImpl(
-                    'I found this command that might help you: test terminal command'
-                ),
-                new CommandChatResponseContentImpl({id: 'custom-command'}, customCallback)
-            ]);
+            return new TerminalCommandChatResponseContentImpl({
+                commands: parsedCommand,
+                insertCallback: this.insertCommand.bind(this),
+                insertAndRunCallback: this.insertAndRunCommand.bind(this)
+            });
         } else {
             return new MarkdownChatResponseContentImpl('Sorry, I can\'t find a suitable command for you');
         }
     }
 
-    protected async commandCallback(): Promise<void> {
-        console.log("***** test *****")
+    protected async insertCommand(command: string): Promise<void> {
+        let terminal = this.terminalService.currentTerminal;
+        if (!terminal) {
+            terminal = await this.createTerminal();
+        }
+        terminal.sendText(command);
+    }
+
+    protected async insertAndRunCommand(command: string): Promise<void> {
+        let terminal = this.terminalService.currentTerminal;
+        if (!terminal) {
+            terminal = await this.createTerminal();
+        }
+        terminal.sendText(command + '\n');
+    }
+
+    async createTerminal() {
+        const terminal = await this.terminalService.newTerminal(<TerminalWidgetFactoryOptions>{ created: new Date().toString() });
+        await terminal.start();
+        this.terminalService.open(terminal);
+        return terminal;
     }
 }
 

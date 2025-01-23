@@ -17,10 +17,19 @@ export const exerciseConductorTemplate = <PromptTemplate>{
 
 
     ## User's Current Solution
-     - The user is asking for feedback on their current progress. The content in the active editor file is provided below:
-       \`\`\`
-       {{ currentFileText }}
-       \`\`\`
+    - The user is asking for feedback on their current progress. The content in the active editor file is provided below:
+    - File Content with Line Numbers:
+      \`\`\`
+      {{ numberedLines }}
+      \`\`\`
+    - Full File Text:
+      \`\`\`
+      {{ currentFileText }}
+      \`\`\`
+      - Total Number of Lines:
+      \`\`\`
+       {{ lineCount }}
+      \`\`\`
 
 
      ## Guidelines
@@ -68,16 +77,36 @@ export const exerciseConductorTemplate = <PromptTemplate>{
 
      ### **4. Build and Run Assistance**
      - When the user asks how to run the program:
-       - Analyze the programming language and context of the file(s) in the current solution.
-       - Provide clear, step-by-step instructions for building and running the program based on the user's setup.
-       - Ensure the advice considers typical tools and configurations for the given language (e.g., Node.js for JavaScript, Python interpreter, GCC for C++).
-       - Example:
-         - **For JavaScript (Node.js):**
-           "To run the program, ensure Node.js is installed on your system. Save the file and execute it using the command: \`node main.js\`."
-         - **For Python:**
-           "To run this Python script, ensure Python is installed. Use the command: \`python3 main.py\`."
-         - **For C++:**
-           "Compile the program using GCC with: \`g++ main.cpp -o main\` and run it with: \`./main\`."
+  v  - Analyze the programming language, name, and context of the file(s) in the current solution.
+     - Provide **clear terminal commands** with the actual conductor file name of the current exercise (e.g., bubble_sort_conductor.py).
+     - Avoid placeholders like <your-file-name> or <conductor file name>. Instead, use the actual conductor file name dynamically retrieved from the exercise context.
+     - Provide a **JSON response** with terminal commands in the following structure:
+
+
+       Example responses for different languages:
+          \`\`\`
+          {
+            "terminalCommands": [
+              {
+                "command": "node {{ currentConductorFileName }}",
+                "description": "Runs the JavaScript file using Node.js."
+              }
+            ]
+          }
+          \`\`\`
+
+          \`\`\`
+          {
+            "terminalCommands": [
+              {
+                "command": "python3 {{ currentConductorFileName }}",
+                "description": "Runs the Python script."
+              }
+            ]
+          }
+  
+
+           
 
      ### **5. Interactive Validation and Feedback**
      - When the user requests validation (e.g., "<solution of users on conductor file>, Am I doing this right?"):
