@@ -96,7 +96,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
      * Parses the response text from the LLM to extract the command and parameters.
 
      */
-    /*
+    
     protected async parseTextResponse(text: string): Promise<{ function: string; parameters?: any }> {
         try {
             const jsonMatch = text.match(/(\{[\s\S]*\})/);
@@ -110,6 +110,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             return { function: 'unknown' };
         }
     }
+
         
     protected async parseTextResponseCommand(text: string): Promise<any> {
         const jsonMatch = text.match(/{(?:[^{}]|{[^{}]*})*}/g) || [];
@@ -119,190 +120,55 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
         })
         return parsedCommand;
     }
-
-    */
-    protected async parseTextResponse(text: string): Promise<string | null> {
-        try {
-            // Match the first JSON object in the response
-            const jsonMatch = text.match(/{(?:[^{}]|{[^{}]*})*}/);
-    
-            if (!jsonMatch) {
-                throw new Error("No valid JSON found in response text.");
-            }
-    
-            // Parse the extracted JSON
-            const jsonObj = JSON.parse(jsonMatch[0]);
-    
-            // Ensure "command" key exists
-            if (jsonObj.command) {
-                return jsonObj.command; // Return only the command string
-            }
-    
-            throw new Error("Command key not found in parsed JSON.");
-        } catch (error) {
-            console.error("Error parsing LLM response:", error);
-            return null;
-        }
-    }
+   
     
     
     
-    // protected override async addContentsToResponse(response: LanguageModelResponse, request: ChatRequestModelImpl): Promise<void> {
-    //     this.logger.info('Response as text:', response);
-
-    //     const responseAsText = await getTextOfResponse(response);
-    //     this.logger.info('Response as text:', responseAsText);
-    //     const jsonMatch = responseAsText.match(/(\{[\s\S]*\})/);
-    //     this.logger.info('Response as text:', responseAsText);
-
-    //     if (!jsonMatch) {
-    //         this.logger.info('nothing');
-
-    //         const contents = this.parseContents(responseAsText);
-    //         request.response.response.addContents(contents);
-    //     } else {
-    //         const jsonString = jsonMatch[1];
-    //         this.logger.info('JSON string:', jsonString);
-    //         let jsonObj;
-    //         try{
-    //             jsonObj = JSON.parse(jsonString)
-    //         }catch(error){
-    //             this.logger.error('Error parsing JSON:', error);
-    //             const contents = this.parseContents(responseAsText);
-    //             request.response.response.addContents(contents);
-    //             return;
-    //         }
-
-    //         this.logger.info('JSON object:', jsonObj);
-    //         // const beforeJson = responseAsText.slice(0, jsonMatch.index!);
-    //         // const afterJson =responseAsText.slice(jsonMatch.index! + jsonString.length)
-    //         const key = Object.keys(jsonObj)[0]
-    //         switch (key) {
-    //             case 'exerciseList':
-    //                 this.handleGetExerciseList(request, jsonObj.exerciseList);
-    //                 break;
-    //             case 'exerciseContent':
-    //                 this.handleGetExercise(request, jsonObj.exerciseContent);
-    //                 break;
-    //             default:
-    //                 const contents = this.parseContents(responseAsText);
-    //                 request.response.response.addContents(contents);
-    //         }
-    //     }
-    // }
-
-
-    // protected override async addContentsToResponse(response: LanguageModelResponse, request: ChatRequestModelImpl): Promise<void> {
-    //     const responseAsText = await getTextOfResponse(response);
-    //     this.logger.info('Response as text:', responseAsText);
-    
-    //     const jsonRegex = /{(?:[^{}]|{[^{}]*})*}/g;
-    //     const jsonMatches = responseAsText.match(jsonRegex) || [];
-    //     let remainingText = responseAsText;
-    
-    //     const commands: any[] = [];
-    //     for (const match of jsonMatches) {
-    //         try {
-    //             const parsedJson = JSON.parse(match);
-    //             if (parsedJson.command && parsedJson.description) {
-    //                 commands.push({
-    //                     command: parsedJson.command,
-    //                     description: parsedJson.description,
-    //                 });
-    //             }
-    //             remainingText = remainingText.replace(match, '').trim(); // Remove JSON from remaining text
-    //         } catch (error) {
-    //             this.logger.error('Error parsing JSON:', error);
-    //         }
-    //     }
-    
-    //     // Add commands with buttons
-    //     if (commands.length > 0) {
-    //         request.response.response.addContent(
-    //             new TerminalCommandChatResponseContentImpl({
-    //                 commands: commands,
-    //                 insertCallback: this.insertCommand.bind(this),
-    //                 insertAndRunCallback: this.insertAndRunCommand.bind(this),
-    //             })
-    //         );
-    //     }
-    
-    //     // Add remaining plain text if available
-    //     if (remainingText) {
-    //         request.response.response.addContent(new MarkdownChatResponseContentImpl(remainingText));
-    //     }
-    // }
-
     protected override async addContentsToResponse(response: LanguageModelResponse, request: ChatRequestModelImpl): Promise<void> {
+        this.logger.info('Response as text:', response);
+
         const responseAsText = await getTextOfResponse(response);
         this.logger.info('Response as text:', responseAsText);
-    
-        const jsonRegex = /{(?:[^{}]|{[^{}]*})*}/g;
-        const jsonMatches = responseAsText.match(jsonRegex) || [];
-        let remainingText = responseAsText;
-    
-        
-        const commands: any[] = [];
-        const structuredContent: Array<{ key: string; data: any }> = [];
-    
-      
-        for (const match of jsonMatches) {
-            try {
-                const parsedJson = JSON.parse(match);
-    
-                if (parsedJson.command && parsedJson.description) {
-                    commands.push({
-                        command: parsedJson.command,
-                        description: parsedJson.description,
-                    });
-                } else {
-                    
-                    const key = Object.keys(parsedJson)[0];
-                    if (key) {
-                        structuredContent.push({ key, data: parsedJson[key] });
-                    }
-                }
-    
-              
-                remainingText = remainingText.replace(match, '').trim();
-            } catch (error) {
+        const jsonMatch = responseAsText.match(/(\{[\s\S]*\})/);
+        this.logger.info('Response as text:', responseAsText);
+
+        if (!jsonMatch) {
+            this.logger.info('nothing');
+
+            const contents = this.parseContents(responseAsText);
+            request.response.response.addContents(contents);
+        } else {
+            const jsonString = jsonMatch[1];
+            this.logger.info('JSON string:', jsonString);
+            let jsonObj;
+            try{
+                jsonObj = JSON.parse(jsonString)
+            }catch(error){
                 this.logger.error('Error parsing JSON:', error);
+                const contents = this.parseContents(responseAsText);
+                request.response.response.addContents(contents);
+                return;
             }
-        }
-    
-        if (commands.length > 0) {
-            request.response.response.addContent(
-                new TerminalCommandChatResponseContentImpl({
-                    commands: commands,
-                    insertCallback: this.insertCommand.bind(this),
-                    insertAndRunCallback: this.insertAndRunCommand.bind(this),
-                })
-            );
-        }
-    
-        for (const content of structuredContent) {
-            switch (content.key) {
+
+            this.logger.info('JSON object:', jsonObj);
+            const key = Object.keys(jsonObj)[0]
+            switch (key) {
                 case 'exerciseList':
-                    this.handleGetExerciseList(request, content.data);
+                    this.handleGetExerciseList(request, jsonObj.exerciseList);
                     break;
                 case 'exerciseContent':
-                    this.handleGetExercise(request, content.data);
+                    this.handleGetExercise(request, jsonObj.exerciseContent);
+                    break;
+                case 'terminalCommands':
+                    this.handleTerminalCommand(request, jsonObj.terminalCommands);
                     break;
                 default:
-                    this.logger.warn(`Unknown content key: ${content.key}`);
-                    request.response.response.addContent(
-                        new MarkdownChatResponseContentImpl(`Unrecognized content: ${JSON.stringify(content.data)}`)
-                    );
-                    break;
+                    const contents = this.parseContents(responseAsText);
+                    request.response.response.addContents(contents);
             }
         }
-    
-     
-        if (remainingText) {
-            const contents = this.parseContents(remainingText);
-            request.response.response.addContents(contents);
-        }
     }
+
     
     
 
@@ -351,6 +217,61 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
 
         }
     }
+    protected async handleTerminalCommand(request: ChatRequestModelImpl, parsedCommands: string): Promise<void> {
+        try {
+            // Validate and parse commands asynchronously
+            const validCommands = await this.parseTextResponseCommand(parsedCommands);
+    
+            if (validCommands.length > 0) {
+                // Add terminal commands with interactive buttons
+                request.response.response.addContent(
+                    new TerminalCommandChatResponseContentImpl({
+                        commands: validCommands, 
+                        insertCallback: this.insertCommand.bind(this),
+                        insertAndRunCallback: this.insertAndRunCommand.bind(this),
+                    })
+                );
+            } else {
+                // No valid commands found
+                request.response.response.addContent(
+                    new MarkdownChatResponseContentImpl('No valid terminal commands were found. Please check the response.')
+                );
+            }
+        } catch (error) {
+            this.logger.error('Error handling terminal commands:', error);
+            request.response.response.addContent(
+                new MarkdownChatResponseContentImpl('An error occurred while processing terminal commands.')
+            );
+        }
+    }
+    
+    
+    /**
+     * Parses and validates an array of commands.
+     * @param parsedCommands - The array of commands to validate.
+     * @returns A list of valid commands.
+     */
+    protected parseCommands(parsedCommands: any[]): { command: string; description: string }[] {
+        if (!Array.isArray(parsedCommands)) {
+            this.logger.warn('Expected an array of commands but received:', parsedCommands);
+            return [];
+        }
+    
+        return parsedCommands
+            .map((cmd) => {
+                if (cmd.command && cmd.description) {
+                    return {
+                        command: cmd.command,
+                        description: cmd.description,
+                    };
+                } else {
+                    this.logger.warn('Invalid command structure:', cmd);
+                    return null;
+                }
+            })
+            .filter((cmd): cmd is { command: string; description: string } => cmd !== null); // Remove null values
+    }
+    
 
 
      /**
@@ -435,17 +356,17 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
 
     
     
-        protected createResponseContent(parsedCommand: any, request: ChatRequestModelImpl): ChatResponseContent {
-            if (parsedCommand) {
-                return new TerminalCommandChatResponseContentImpl({
-                    commands: parsedCommand,
-                    insertCallback: this.insertCommand.bind(this),
-                    insertAndRunCallback: this.insertAndRunCommand.bind(this)
-                });
-            } else {
-                return new MarkdownChatResponseContentImpl('Sorry, I can\'t find a suitable command for you');
-            }
-        }
+        // protected createResponseContent(parsedCommand: any, request: ChatRequestModelImpl): ChatResponseContent {
+        //     if (parsedCommand) {
+        //         return new TerminalCommandChatResponseContentImpl({
+        //             commands: parsedCommand,
+        //             insertCallback: this.insertCommand.bind(this),
+        //             insertAndRunCallback: this.insertAndRunCommand.bind(this)
+        //         });
+        //     } else {
+        //         return new MarkdownChatResponseContentImpl('Sorry, I can\'t find a suitable command for you');
+        //     }
+        // }
     
         protected async insertCommand(command: string): Promise<void> {
             try {
@@ -485,6 +406,3 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             return terminal;
         }
 }
-
-
-
