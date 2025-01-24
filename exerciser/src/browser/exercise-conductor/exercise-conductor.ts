@@ -217,16 +217,15 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
 
         }
     }
-    protected async handleTerminalCommand(request: ChatRequestModelImpl, parsedCommands: string): Promise<void> {
+    protected async handleTerminalCommand(request: ChatRequestModelImpl, parsedCommands: any[]): Promise<void> {
         try {
-            // Validate and parse commands asynchronously
-            const validCommands = await this.parseTextResponseCommand(parsedCommands);
+            
     
-            if (validCommands.length > 0) {
+            if (parsedCommands.length > 0) {
                 // Add terminal commands with interactive buttons
                 request.response.response.addContent(
                     new TerminalCommandChatResponseContentImpl({
-                        commands: validCommands, 
+                        commands: parsedCommands, 
                         insertCallback: this.insertCommand.bind(this),
                         insertAndRunCallback: this.insertAndRunCommand.bind(this),
                     })
@@ -319,6 +318,12 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 this.logger.warn('No active file found. Skipping currentFileText in the prompt.');
             }
 
+            const currentFileName = await this.getCurrentFileName();
+
+            if(!currentFileName){
+                this.logger.warn('No active file found. Skipping currentFileName in the prompt.');
+            }
+
             const { fileText, linesWithNumbers, lineCount } = currentFileText || {
                 fileText: 'No active file content available.',
                 linesWithNumbers: [],
@@ -336,6 +341,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 currentFileText: fileText,
                 numberedLines: numberedLines || 'No active file content available.',
                 lineCount: lineCount,
+                currentFileName: currentFileName || 'No active file found.',
             });
 
             return resolvedPrompt
@@ -393,7 +399,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             if (!terminal) {
                 terminal = await this.createTerminal();
             }
-            terminal.sendText(command + '\n');
+            terminal.sendText(command + '\r\n');
         }
     
         async createTerminal() {
