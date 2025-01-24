@@ -34,12 +34,83 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
                           "repository": "https://github.com/owner/repo",
                           "url": "https://github.com/owner/repo/pull/123",
                           "createdAt": "2025-01-01T12:34:56Z",
-                          "updatedAt": "2025-01-07T15:30:00Z"
+                          "updatedAt": "2025-01-07T15:30:00Z",
+                          "comments": [
+                             {
+                               "url": "https://api.github.com/repos/atahankilc/expresserrr/pulls/comments/1927348030",
+                               "pull_request_review_id": 2570493613,
+                               "id": 1927348030,
+                               "node_id": "PRRC_kwDONukbbM5y4P8-",
+                               "diff_hunk": "@@ -0,0 +1,7 @@\\n+export interface IExerciseService {\\n+    getAllExercises(): Promise<any>; ",
+                               "path": "src/types/IExerciseService.ts",
+                               "commit_id": "0568e8b0773fb0b0619db2b9b67a0d8fefea159c",
+                               "original_commit_id": "0568e8b0773fb0b0619db2b9b67a0d8fefea159c",
+                               "user": {
+                                 "login": "atahankilc",
+                                 "id": 85197741,
+                                 "node_id": "MDQ6VXNlcjg1MTk3NzQx",
+                                 "avatar_url": "https://avatars.githubusercontent.com/u/85197741?v=4",
+                                 "gravatar_id": "",
+                                 "url": "https://api.github.com/users/atahankilc",
+                                 "html_url": "https://github.com/atahankilc",
+                                 "followers_url": "https://api.github.com/users/atahankilc/followers",
+                                 "following_url": "https://api.github.com/users/atahankilc/following{/other_user}",
+                                 "gists_url": "https://api.github.com/users/atahankilc/gists{/gist_id}",
+                                 "starred_url": "https://api.github.com/users/atahankilc/starred{/owner}{/repo}",
+                                 "subscriptions_url": "https://api.github.com/users/atahankilc/subscriptions",
+                                 "organizations_url": "https://api.github.com/users/atahankilc/orgs",
+                                 "repos_url": "https://api.github.com/users/atahankilc/repos",
+                                 "events_url": "https://api.github.com/users/atahankilc/events{/privacy}",
+                                 "received_events_url": "https://api.github.com/users/atahankilc/received_events",
+                                 "type": "User",
+                                 "user_view_type": "public",
+                                 "site_admin": false
+                               },
+                               "body": "what are these any tpypes. You should well define types, this is the reason why we are using ts!",
+                               "created_at": "2025-01-23T17:05:26Z",
+                               "updated_at": "2025-01-23T17:05:27Z",
+                               "html_url": "https://github.com/atahankilc/expresserrr/pull/2#discussion_r1927348030",
+                               "pull_request_url": "https://api.github.com/repos/atahankilc/expresserrr/pulls/2",
+                               "author_association": "OWNER",
+                               "_links": {
+                                 "self": {
+                                   "href": "https://api.github.com/repos/atahankilc/expresserrr/pulls/comments/1927348030"
+                                 },
+                                 "html": {
+                                   "href": "https://github.com/atahankilc/expresserrr/pull/2#discussion_r1927348030"
+                                 },
+                                 "pull_request": {
+                                   "href": "https://api.github.com/repos/atahankilc/expresserrr/pulls/2"
+                                 }
+                               },
+                               "reactions": {
+                                 "url": "https://api.github.com/repos/atahankilc/expresserrr/pulls/comments/1927348030/reactions",
+                                 "total_count": 0,
+                                 "+1": 0,
+                                 "-1": 0,
+                                 "laugh": 0,
+                                 "hooray": 0,
+                                 "confused": 0,
+                                 "heart": 0,
+                                 "rocket": 0,
+                                 "eyes": 0
+                               },
+                               "start_line": null,
+                               "original_start_line": null,
+                               "start_side": null,
+                               "line": 2,
+                               "original_line": 2,
+                               "side": "RIGHT",
+                               "original_position": 2,
+                               "position": 2,
+                               "subject_type": "line"
+                             },
+                          ]
                       },
                       ...
                     ]
                     \`\`\`
-               - Analyze the pull requests to identify areas where the user struggles or can improve (e.g., clean code practices, edge cases, or advanced topics).
+               - Analyze the pull requests to identify areas where the user struggles or can improve (e.g., clean code practices, edge cases, or advanced topics, issues related to existing comments).
                - Generate exercises that target these improvement areas.
 
          - Example Question to Present to the User:
@@ -92,7 +163,78 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
                   "repository": "https://github.com/owner/repo",
                   "url": "https://github.com/owner/repo/pull/123",
                   "createdAt": "2025-01-01T12:34:56Z",
-                  "updatedAt": "2025-01-07T15:30:00Z"
+                  "updatedAt": "2025-01-07T15:30:00Z",
+                  "comments": [
+                    {
+                      "url": "https://api.github.com/repos/atahankilc/expresserrr/pulls/comments/1927348030",
+                      "pull_request_review_id": 2570493613,
+                      "id": 1927348030,
+                      "node_id": "PRRC_kwDONukbbM5y4P8-",
+                      "diff_hunk": "@@ -0,0 +1,7 @@\\n+export interface IExerciseService {\\n+    getAllExercises(): Promise<any>; ",
+                      "path": "src/types/IExerciseService.ts",
+                      "commit_id": "0568e8b0773fb0b0619db2b9b67a0d8fefea159c",
+                      "original_commit_id": "0568e8b0773fb0b0619db2b9b67a0d8fefea159c",
+                      "user": {
+                        "login": "atahankilc",
+                        "id": 85197741,
+                        "node_id": "MDQ6VXNlcjg1MTk3NzQx",
+                        "avatar_url": "https://avatars.githubusercontent.com/u/85197741?v=4",
+                        "gravatar_id": "",
+                        "url": "https://api.github.com/users/atahankilc",
+                        "html_url": "https://github.com/atahankilc",
+                        "followers_url": "https://api.github.com/users/atahankilc/followers",
+                        "following_url": "https://api.github.com/users/atahankilc/following{/other_user}",
+                        "gists_url": "https://api.github.com/users/atahankilc/gists{/gist_id}",
+                        "starred_url": "https://api.github.com/users/atahankilc/starred{/owner}{/repo}",
+                        "subscriptions_url": "https://api.github.com/users/atahankilc/subscriptions",
+                        "organizations_url": "https://api.github.com/users/atahankilc/orgs",
+                        "repos_url": "https://api.github.com/users/atahankilc/repos",
+                        "events_url": "https://api.github.com/users/atahankilc/events{/privacy}",
+                        "received_events_url": "https://api.github.com/users/atahankilc/received_events",
+                        "type": "User",
+                        "user_view_type": "public",
+                        "site_admin": false
+                      },
+                      "body": "what are these any tpypes. You should well define types, this is the reason why we are using ts!",
+                      "created_at": "2025-01-23T17:05:26Z",
+                      "updated_at": "2025-01-23T17:05:27Z",
+                      "html_url": "https://github.com/atahankilc/expresserrr/pull/2#discussion_r1927348030",
+                      "pull_request_url": "https://api.github.com/repos/atahankilc/expresserrr/pulls/2",
+                      "author_association": "OWNER",
+                      "_links": {
+                        "self": {
+                          "href": "https://api.github.com/repos/atahankilc/expresserrr/pulls/comments/1927348030"
+                        },
+                        "html": {
+                          "href": "https://github.com/atahankilc/expresserrr/pull/2#discussion_r1927348030"
+                        },
+                        "pull_request": {
+                          "href": "https://api.github.com/repos/atahankilc/expresserrr/pulls/2"
+                        }
+                      },
+                      "reactions": {
+                        "url": "https://api.github.com/repos/atahankilc/expresserrr/pulls/comments/1927348030/reactions",
+                        "total_count": 0,
+                        "+1": 0,
+                        "-1": 0,
+                        "laugh": 0,
+                        "hooray": 0,
+                        "confused": 0,
+                        "heart": 0,
+                        "rocket": 0,
+                        "eyes": 0
+                      },
+                      "start_line": null,
+                      "original_start_line": null,
+                      "start_side": null,
+                      "line": 2,
+                      "original_line": 2,
+                      "side": "RIGHT",
+                      "original_position": 2,
+                      "position": 2,
+                      "subject_type": "line"
+                    },
+                  ]
               },
               ...
             ]

@@ -234,16 +234,15 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
 
         }
     }
-    protected async handleTerminalCommand(request: ChatRequestModelImpl, parsedCommands: []): Promise<void> {
+    protected async handleTerminalCommand(request: ChatRequestModelImpl, parsedCommands: any[]): Promise<void> {
         try {
-            // Validate and parse commands asynchronously
-            // const validCommands = await this.parseTextResponseCommand(parsedCommands);
-
+            
+    
             if (parsedCommands.length > 0) {
                 // Add terminal commands with interactive buttons
                 request.response.response.addContent(
                     new TerminalCommandChatResponseContentImpl({
-                        commands: parsedCommands,
+                        commands: parsedCommands, 
                         insertCallback: this.insertCommand.bind(this),
                         insertAndRunCallback: this.insertAndRunCommand.bind(this),
                     })
@@ -350,6 +349,12 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 this.logger.warn('No active file found. Skipping currentFileText in the prompt.');
             }
 
+            const currentFileName = await this.getCurrentFileName();
+
+            if(!currentFileName){
+                this.logger.warn('No active file found. Skipping currentFileName in the prompt.');
+            }
+
             const { fileText, linesWithNumbers, lineCount } = currentFileText || {
                 fileText: 'No active file content available.',
                 linesWithNumbers: [],
@@ -367,6 +372,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 currentFileText: fileText,
                 numberedLines: numberedLines || 'No active file content available.',
                 lineCount: lineCount,
+                currentFileName: currentFileName || 'No active file found.',
             });
 
             return resolvedPrompt
@@ -385,52 +391,52 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
          * If there was no json in the text, return a no-command response.
          */
 
-
-
-    // protected createResponseContent(parsedCommand: any, request: ChatRequestModelImpl): ChatResponseContent {
-    //     if (parsedCommand) {
-    //         return new TerminalCommandChatResponseContentImpl({
-    //             commands: parsedCommand,
-    //             insertCallback: this.insertCommand.bind(this),
-    //             insertAndRunCallback: this.insertAndRunCommand.bind(this)
-    //         });
-    //     } else {
-    //         return new MarkdownChatResponseContentImpl('Sorry, I can\'t find a suitable command for you');
-    //     }
-    // }
-
-    protected async insertCommand(command: string): Promise<void> {
-        try {
+    
+    
+        // protected createResponseContent(parsedCommand: any, request: ChatRequestModelImpl): ChatResponseContent {
+        //     if (parsedCommand) {
+        //         return new TerminalCommandChatResponseContentImpl({
+        //             commands: parsedCommand,
+        //             insertCallback: this.insertCommand.bind(this),
+        //             insertAndRunCallback: this.insertAndRunCommand.bind(this)
+        //         });
+        //     } else {
+        //         return new MarkdownChatResponseContentImpl('Sorry, I can\'t find a suitable command for you');
+        //     }
+        // }
+    
+        protected async insertCommand(command: string): Promise<void> {
+            try {
+                let terminal = this.terminalService.currentTerminal;
+        
+                if (!terminal) {
+                    terminal = await this.createTerminal();
+                } else {
+                    await this.terminalService.open(terminal);
+                }
+        
+                await new Promise(resolve => setTimeout(resolve, 150));
+        
+                terminal.sendText(command);
+                this.logger.info(`Inserted command: ${command}`);
+            } catch (error) {
+                this.logger.error('Error inserting command:', error);
+            }
+        }
+        
+    
+        protected async insertAndRunCommand(command: string): Promise<void> {
             let terminal = this.terminalService.currentTerminal;
-
             if (!terminal) {
                 terminal = await this.createTerminal();
-            } else {
-                await this.terminalService.open(terminal);
             }
-
-            await new Promise(resolve => setTimeout(resolve, 150));
-
-            terminal.sendText(command);
-            this.logger.info(`Inserted command: ${command}`);
-        } catch (error) {
-            this.logger.error('Error inserting command:', error);
+            terminal.sendText(command + '\r\n');
         }
-    }
-
-
-    protected async insertAndRunCommand(command: string): Promise<void> {
-        let terminal = this.terminalService.currentTerminal;
-        if (!terminal) {
-            terminal = await this.createTerminal();
-        }
-        terminal.sendText(command + '\r\n');
-    }
-
-    async createTerminal() {
-        const terminal = await this.terminalService.newTerminal(<TerminalWidgetFactoryOptions>{ created: new Date().toString() });
-        await terminal.start();
-        this.terminalService.open(terminal);
+    
+        async createTerminal() {
+            const terminal = await this.terminalService.newTerminal(<TerminalWidgetFactoryOptions>{ created: new Date().toString() });
+            await terminal.start();
+            this.terminalService.open(terminal);
 
         await new Promise(resolve => setTimeout(resolve, 150));
         this.logger.info('Terminal created successfully.');
