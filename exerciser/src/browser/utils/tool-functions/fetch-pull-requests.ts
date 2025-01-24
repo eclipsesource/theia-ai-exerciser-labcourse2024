@@ -62,17 +62,37 @@ export class FetchPullRequests implements ToolProvider {
             }
 
             const data = await response.json();
-            const pullRequests = data.items.map((pr: any) => ({
-                title: pr.title,
-                repository: pr.repository_url,
-                url: pr.html_url,
-                createdAt: pr.created_at,
-                updatedAt: pr.updated_at,
+            const pullRequests = await Promise.all(data.items.map(async (pr: any) => {
+                const comments =  await this.fetchComments(`${pr.pull_request.url}/comments`)
+                return {
+                    title: pr.title,
+                    repository: pr.repository_url,
+                    url: pr.html_url,
+                    createdAt: pr.created_at,
+                    updatedAt: pr.updated_at,
+                    comments
+                }
             }));
 
             return JSON.stringify(pullRequests, null, 2);
         } catch (error) {
             return `Error fetching pull requests: ${error.message}`;
+        }
+    }
+
+    private async fetchComments(url: string): Promise<object[]> {
+        const headers = {
+            Accept: "application/vnd.github.v3+json",
+        };
+
+        try {
+            const response = await fetch(url, { headers });
+            if (!response.ok) {
+                return [];
+            }
+            return await response.json();
+        } catch (error) {
+            return [];
         }
     }
 }
