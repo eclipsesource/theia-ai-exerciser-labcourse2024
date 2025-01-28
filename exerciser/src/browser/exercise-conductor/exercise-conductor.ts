@@ -18,7 +18,7 @@ import { AbstractStreamParsingChatAgent, ChatAgent, SystemMessageDescription } f
 import { AgentSpecificVariables, PromptTemplate, ToolInvocationRegistry, getTextOfResponse, } from '@theia/ai-core';
 import { inject, injectable } from '@theia/core/shared/inversify';
 import { exerciseConductorTemplate } from "./template";
-import { GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID } from '../utils/tool-functions/function-names';
+import { GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID, FETCH_TERMINAL_ERRORS_FUNCTION_ID } from '../utils/tool-functions/function-names';
 import { ChatRequestModelImpl } from '@theia/ai-chat/lib/common';
 import { LanguageModelResponse } from '@theia/ai-core';
 import { ExerciseService } from '../exercise-service';
@@ -34,7 +34,7 @@ import { EditorManager } from '@theia/editor/lib/browser/editor-manager';
 import { TextEditor } from '@theia/editor/lib/browser';
 import {TerminalCommandChatResponseContentImpl} from "../chat-response-renderer/terminal-command-renderer";
 import {TerminalService} from "@theia/terminal/lib/browser/base/terminal-service";
-import {TerminalWidgetFactoryOptions} from "@theia/terminal/lib/browser/terminal-widget-impl"
+import {TerminalWidgetFactoryOptions} from "@theia/terminal/lib/browser/terminal-widget-impl";
 
 
 @injectable()
@@ -89,7 +89,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
         ];
 
         // Register functions relevant for coding exercises, including file access and code execution
-        this.functions = [GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID];
+        this.functions = [GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID, FETCH_TERMINAL_ERRORS_FUNCTION_ID];
     }
 
     /**
@@ -131,6 +131,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
         this.logger.info('Response as text:', responseAsText);
         const jsonMatch = responseAsText.match(/(\{[\s\S]*\})/);
         this.logger.info('Response as text:', responseAsText);
+
 
         if (!jsonMatch) {
             this.logger.info('nothing');
@@ -373,7 +374,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
         //         return new MarkdownChatResponseContentImpl('Sorry, I can\'t find a suitable command for you');
         //     }
         // }
-    
+
         protected async insertCommand(command: string): Promise<void> {
             try {
                 let terminal = this.terminalService.currentTerminal;
@@ -385,7 +386,6 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 }
         
                 await new Promise(resolve => setTimeout(resolve, 150));
-        
                 terminal.sendText(command);
                 this.logger.info(`Inserted command: ${command}`);
             } catch (error) {
