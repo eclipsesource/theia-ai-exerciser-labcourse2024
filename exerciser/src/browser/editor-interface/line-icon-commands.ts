@@ -2,7 +2,6 @@ import { injectable ,inject ,postConstruct} from '@theia/core/shared/inversify';
 import { Command, CommandContribution, CommandRegistry } from '@theia/core/lib/common';
 import { ChatService,ChatAgentService,ChatAgent,ChatRequest } from '@theia/ai-chat/lib/common';
 import { MessageService } from '@theia/core/lib/common';
-import Messa
 @injectable()
 export class ExerciseHintCommandContribution implements CommandContribution {
 

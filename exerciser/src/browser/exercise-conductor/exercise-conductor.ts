@@ -16,26 +16,29 @@
 
 import { AbstractStreamParsingChatAgent, ChatAgent, SystemMessageDescription } from '@theia/ai-chat/lib/common';
 import { AgentSpecificVariables, PromptTemplate, ToolInvocationRegistry, getTextOfResponse, } from '@theia/ai-core';
-import { inject, injectable } from '@theia/core/shared/inversify';
+import { inject, injectable, postConstruct } from '@theia/core/shared/inversify';
 import { exerciseConductorTemplate } from "./template";
-import { GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID, FETCH_TERMINAL_ERRORS_FUNCTION_ID } from '../utils/tool-functions/function-names';
-import { ChatRequestModelImpl } from '@theia/ai-chat/lib/common';
+import { GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID,FETCH_TERMINAL_ERRORS_FUNCTION_ID } from '../utils/tool-functions/function-names';
+import { ChatRequestModelImpl,    ChatResponseContent,} from '@theia/ai-chat/lib/common';
 import { LanguageModelResponse } from '@theia/ai-core';
 import { ExerciseService } from '../exercise-service';
-import {  MarkdownChatResponseContentImpl} from "@theia/ai-chat";
+import { MarkdownChatResponseContentImpl } from "@theia/ai-chat";
 import { Exercise, ExerciseOverview } from '../exercise-service/types';
 import { ExerciseChatResponseContentImpl } from '../chat-response-renderer/exercise-renderer';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { URI } from '@theia/core/lib/common/uri';
 
-import {ExerciseChatResponse} from "../exercise-creator/types";
+import { ExerciseChatResponse } from "../exercise-creator/types";
 import { EditorManager } from '@theia/editor/lib/browser/editor-manager';
-import { TextEditor } from '@theia/editor/lib/browser';
-import {TerminalCommandChatResponseContentImpl} from "../chat-response-renderer/terminal-command-renderer";
-import {TerminalService} from "@theia/terminal/lib/browser/base/terminal-service";
-import {TerminalWidgetFactoryOptions} from "@theia/terminal/lib/browser/terminal-widget-impl";
+import { EditorWidget, TextEditor } from '@theia/editor/lib/browser';
+import { TerminalCommandChatResponseContentImpl } from "../chat-response-renderer/terminal-command-renderer";
+import { TerminalService } from "@theia/terminal/lib/browser/base/terminal-service";
+import { TerminalWidgetFactoryOptions } from "@theia/terminal/lib/browser/terminal-widget-impl"
+import { MonacoEditor } from '@theia/monaco/lib/browser/monaco-editor';
+import { DisposableCollection } from '@theia/core';
 
+import * as monaco from '@theia/monaco-editor-core';
 
 @injectable()
 export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
@@ -46,6 +49,9 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
     readonly agentSpecificVariables: AgentSpecificVariables[];
     readonly functions: string[];
 
+    protected activeEditorDisposables = new DisposableCollection();
+    protected decorationCollection: monaco.editor.IEditorDecorationsCollection | null = null;
+    protected activeEditor: EditorWidget | undefined;
     @inject(ExerciseService)
     readonly exerciseService: ExerciseService;
     @inject(ToolInvocationRegistry)
@@ -58,7 +64,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
     protected readonly fileService: FileService;
 
     @inject(TerminalService)
-        protected terminalService: TerminalService;
+    protected terminalService: TerminalService;
 
     @inject(EditorManager)
     protected readonly editorManager: EditorManager;
@@ -91,12 +97,20 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
         // Register functions relevant for coding exercises, including file access and code execution
         this.functions = [GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID, FETCH_TERMINAL_ERRORS_FUNCTION_ID];
     }
+    @postConstruct()
+    init(): void {
+        this.editorManager.onCurrentEditorChanged((editor) => {
 
+            this.clearHighlights();
+
+        });
+
+    }
     /**
      * Parses the response text from the LLM to extract the command and parameters.
 
      */
-    
+
     protected async parseTextResponse(text: string): Promise<{ function: string; parameters?: any }> {
         try {
             const jsonMatch = text.match(/(\{[\s\S]*\})/);
@@ -111,7 +125,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
         }
     }
 
-        
+
     protected async parseTextResponseCommand(text: string): Promise<any> {
         const jsonMatch = text.match(/{(?:[^{}]|{[^{}]*})*}/g) || [];
         const parsedCommand: any[] = [];
@@ -120,10 +134,10 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
         })
         return parsedCommand;
     }
-   
-    
-    
-    
+
+
+
+
     protected override async addContentsToResponse(response: LanguageModelResponse, request: ChatRequestModelImpl): Promise<void> {
         this.logger.info('Response as text:', response);
 
@@ -136,21 +150,29 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
         if (!jsonMatch) {
             this.logger.info('nothing');
 
-            const contents = this.parseContents(responseAsText);
+            const contents = this.parseContents(responseAsText, request);
             request.response.response.addContents(contents);
         } else {
             const jsonString = jsonMatch[1];
             this.logger.info('JSON string:', jsonString);
             let jsonObj;
-            try{
+            try {
                 jsonObj = JSON.parse(jsonString)
-            }catch(error){
+            } catch (error) {
                 this.logger.error('Error parsing JSON:', error);
-                const contents = this.parseContents(responseAsText);
+                const contents = this.parseContents(responseAsText, request);
                 request.response.response.addContents(contents);
                 return;
             }
-
+            let beforeJsonContents: ChatResponseContent[] = [];
+            let afterJsonContents: ChatResponseContent[] = [];
+            if (jsonMatch && jsonMatch.index !== undefined) {
+                beforeJsonContents = this.parseContents(responseAsText.slice(0, jsonMatch.index));
+                console.log('beforeJsonContents', responseAsText.slice(0, jsonMatch.index));
+                afterJsonContents = this.parseContents(responseAsText.slice(jsonMatch.index + jsonString.length));
+            }
+            // const beforeJsonContents= this.parseContents(responseAsText.slice(0, jsonMatch.index));
+            // const afterJsoncontents =this.parseContents(responseAsText.slice(jsonMatch.index + jsonString.length))
             this.logger.info('JSON object:', jsonObj);
             const key = Object.keys(jsonObj)[0]
             switch (key) {
@@ -163,15 +185,18 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 case 'terminalCommands':
                     this.handleTerminalCommand(request, jsonObj.terminalCommands);
                     break;
+                case 'feedbackErrorLines':
+                    this.handleFeedbackErrorLines(request, jsonObj.feedbackErrorLines,beforeJsonContents,afterJsonContents);
+                    break
                 default:
-                    const contents = this.parseContents(responseAsText);
+                    const contents = this.parseContents(responseAsText, request);
                     request.response.response.addContents(contents);
             }
         }
     }
 
-    
-    
+
+
 
 
     /**
@@ -208,7 +233,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 request.response.response.addContent(new MarkdownChatResponseContentImpl(`${exercise.exerciseSummarization}.`))
                 request.response.response.addContent(new MarkdownChatResponseContentImpl(`${exercise.fileListSummarization}.`))
 
-                const exerciseContentChatResponse : ExerciseChatResponse = {...exercise, renderSwitch: "conductorFiles"};
+                const exerciseContentChatResponse: ExerciseChatResponse = { ...exercise, renderSwitch: "conductorFiles" };
                 request.response.response.addContent(new ExerciseChatResponseContentImpl(exerciseContentChatResponse));
 
 
@@ -244,8 +269,22 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             );
         }
     }
-    
-    
+    protected handleFeedbackErrorLines(request: ChatRequestModelImpl, feedbackErrorLines: number[],beforeJsonContents:ChatResponseContent[],afterJsonContents: ChatResponseContent[]): void {
+        try {
+            // Highlight the error lines in the editor
+            this.highlightLines(feedbackErrorLines);
+
+            // Add the feedback message to the chat response
+            request.response.response.addContents(beforeJsonContents);
+            // request.response.response.addContent(new MarkdownChatResponseContentImpl('The following lines contain errors:'));
+            // request.response.response.addContent(new MarkdownChatResponseContentImpl(`- ${feedbackErrorLines.join(', ')}`));
+            request.response.response.addContents(afterJsonContents);
+        } catch (error) {
+            this.logger.error('Error handling feedback error lines:', error);
+            request.response.response.addContent(new MarkdownChatResponseContentImpl('An error occurred while processing feedback error lines.'));
+
+        }
+    }
     /**
      * Parses and validates an array of commands.
      * @param parsedCommands - The array of commands to validate.
@@ -256,7 +295,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             this.logger.warn('Expected an array of commands but received:', parsedCommands);
             return [];
         }
-    
+
         return parsedCommands
             .map((cmd) => {
                 if (cmd.command && cmd.description) {
@@ -271,14 +310,14 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             })
             .filter((cmd): cmd is { command: string; description: string } => cmd !== null); // Remove null values
     }
-    
 
 
-     /**
-     * Retrieves the text of the currently opened file in the editor.
-     * @returns The text of the currently active file or `undefined` if no editor is active.
-     */
-     public async getCurrentFileText(): Promise<{ fileText: string, linesWithNumbers: { lineNumber: number; content: string }[], lineCount: number } | undefined> {
+
+    /**
+    * Retrieves the text of the currently opened file in the editor.
+    * @returns The text of the currently active file or `undefined` if no editor is active.
+    */
+    public async getCurrentFileText(): Promise<{ fileText: string, linesWithNumbers: { lineNumber: number; content: string }[], lineCount: number } | undefined> {
         const currentEditorWidget = this.editorManager.currentEditor;
         if (!currentEditorWidget) {
             console.error('No active editor found.');
@@ -290,24 +329,24 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
 
         const lines = fileText.split(/\r?\n/);
         const linesWithNumbers = lines.map((content, index) => ({
-        lineNumber: index + 1,
-        content,
-     }));
+            lineNumber: index + 1,
+            content,
+        }));
 
-     return {
-        fileText,
-        linesWithNumbers,
-        lineCount: lines.length,
-      };
+        return {
+            fileText,
+            linesWithNumbers,
+            lineCount: lines.length,
+        };
     }
 
     public async getCurrentFileName(): Promise<string | undefined> {
         const currentEditorWidget = this.editorManager.currentEditor;
         if (currentEditorWidget) {
             const uri = new URI(currentEditorWidget.editor.document.uri);
-            return uri.path.base; 
+            return uri.path.base;
         }
-        return undefined; 
+        return undefined;
     }
 
     protected override async getSystemMessageDescription(): Promise<SystemMessageDescription | undefined> {
@@ -330,11 +369,11 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 linesWithNumbers: [],
                 lineCount: 0,
             };
-    
+
             const numberedLines = linesWithNumbers
                 .map(({ lineNumber, content }) => `Line ${lineNumber}: ${content}`)
                 .join('\n');
-    
+
             const exercises = JSON.stringify(this.exerciseService.allExercises)
 
             const resolvedPrompt = await this.promptService.getPrompt(exerciseConductorTemplate.id, {
@@ -349,10 +388,10 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 ? SystemMessageDescription.fromResolvedPromptTemplate(resolvedPrompt)
                 : undefined;
 
-       } catch (error) {
+        } catch (error) {
             this.logger.error('Error constructing system message description:', error);
             return undefined;
-       }
+        }
     }
 
     /**
@@ -407,8 +446,57 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             await terminal.start();
             this.terminalService.open(terminal);
 
-            await new Promise(resolve => setTimeout(resolve, 150));
-            this.logger.info('Terminal created successfully.');
-            return terminal;
+        await new Promise(resolve => setTimeout(resolve, 150));
+        this.logger.info('Terminal created successfully.');
+        return terminal;
+    }
+    protected highlightLines(lineNumbers: number[]): void {
+        const editorWidget = this.editorManager.currentEditor;
+
+        if (!editorWidget) {
+            console.warn('No active editor found.');
+            return;
         }
+
+        const monacoEditor = editorWidget.editor as MonacoEditor;
+        if (!monacoEditor) {
+            console.warn('Monaco editor is not available for the active editor.');
+            return;
+        }
+
+        const model = monacoEditor.getControl();
+        if (!model) {
+            console.warn('Monaco model is not available.');
+            return;
+        }
+
+        // Clear previous highlights
+        this.clearHighlights();
+
+        // Create or update the decorations collection
+        const decorations = lineNumbers.map(lineNumber => ({
+            range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+            options: {
+                isWholeLine: true,
+                className: 'custom-line-highlight',
+            }
+        }));
+
+        this.decorationCollection = model.createDecorationsCollection(decorations);
+
+        // Dispose decorations when the active editor changes
+        this.activeEditorDisposables.push({
+            dispose: () => this.clearHighlights()
+        });
+    }
+
+    protected clearHighlights(): void {
+        if (this.decorationCollection) {
+            this.decorationCollection.clear();
+            this.decorationCollection = null;
+        }
+        this.activeEditorDisposables.dispose();
+    }
+
+
 }

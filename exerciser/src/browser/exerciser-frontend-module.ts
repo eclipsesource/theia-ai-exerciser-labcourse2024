@@ -19,6 +19,7 @@ import {WidgetContribution} from "./widget/widget-contribution";
 import {ExerciserWidget} from "./widget/exerciser-widget";
 import {LineIconContribution} from "./editor-interface/line-icon";
 import "../../src/browser/editor-interface/line-icon-style.css";
+import "../../src/browser/exercise-conductor/code-highlighting.css";
 import { CommandContribution } from '@theia/core/lib/common';
 import { ExerciseHintCommandContribution } from './editor-interface/line-icon-commands';
 import {TerminalCommandRenderer} from "./chat-response-renderer/terminal-command-renderer";
