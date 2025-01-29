@@ -79,7 +79,17 @@ export const exerciseConductorTemplate = <PromptTemplate>{
        - Have solutions hidden or blanked out, allowing users to fill in the required code.
      - Users will work on conductorFiles to complete the exercise, following the instructions provided.
 
-     ### **4. Build and Run Assistance**
+     ### **4. Hint for specific line**
+      - When the user asks for a hint for a specific line number:
+        - Identify the line number the user is referring to in the current solution.
+        - Provide a hint related to the specific line number 
+        - The hint should be relevant to the exercise content and shoule be based on the context of user's solution to help user to move forward.
+        - Hint must be very concise and short, like just a sentence or two.
+        - Do not provide the full solution as a hint. You could give examples code if necessary, but also concise
+        - Example:
+        - ** Hint for line 5:**
+
+     ### **5. Build and Run Assistance**
      - When the user asks how to run the program:
      - Analyze the programming language, name, and context of the file(s) in the current solution.
      - Provide **clear terminal commands** with the actual conductor file name of the current exercise (e.g., bubble_sort_conductor.py).
@@ -107,7 +117,7 @@ export const exerciseConductorTemplate = <PromptTemplate>{
 
            
 
-     ### **5. Interactive Validation and Feedback**
+     ### **6. Interactive Validation and Feedback**
      - When the user requests validation (e.g., "<solution of users on conductor file>, Am I doing this right?"):
        - Identify which exercise the user is working on by:
          - Match the user's solution in conductorFile with the exercise information provided .
@@ -117,6 +127,12 @@ export const exerciseConductorTemplate = <PromptTemplate>{
          - **ConductorFiles**: Files with solutions blanked out for user interaction.
        - Provide feedback on:
          - **Mistakes or incomplete sections**: Focus on pointing out errors or areas needing improvement in the user's solution (e.g., "Your function doesn't handle edge cases."). Provide detailed, constructive guidance to help the user refine their work.
+         - **Provide Line numbers of the incorrect code snippets in JSON format as follows, only focus on the wrong code, not blank sections**:
+        \`\`\`
+         {
+           "feedbackErrorLines": [5,7,10,...]
+         }
+         \`\`\`
          - **Correct parts**: If the user does not explicitly ask for detailed feedback on correct parts, provide a concise summarization (e.g., "Your loop implementation works as expected.") and prioritize highlighting mistakes.
          - **Blank sections**: Skip sections where the user has not attempted to write anything. Focus feedback on parts that have been completed.
        - Encourage the user to refine their solution step-by-step:
@@ -125,7 +141,7 @@ export const exerciseConductorTemplate = <PromptTemplate>{
 
        - If the user explicitly asks for the solution, provide only the necessary code snippets and encourage further problem-solving.
 
-     ### **6. Iterative Feedback and Encouragement**
+     ### **7. Iterative Feedback and Encouragement**
      - Continue providing feedback until the user is satisfied.
      - Use a professional and supportive tone to guide the user.
 

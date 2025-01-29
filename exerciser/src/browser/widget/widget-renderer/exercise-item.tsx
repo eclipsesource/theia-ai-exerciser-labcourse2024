@@ -54,7 +54,7 @@ export const ExerciseItem: React.FC<Props> = ({ exercise,createExerciseFile, rem
                     className={"theia-button main"}
                     onClick={() => createExerciseFile(exercise.exerciseId)}
                 >
-                    Create exercise files
+                    Instantiate exercise files
                 </button>
                 <button
                     className={"theia-button main"}

@@ -66,8 +66,7 @@ export class LineIconContribution implements FrontendApplicationContribution {
                 glyphMarginClassName: 'codicon codicon-light-bulb',
                 glyphMarginHoverMessage: [{
                     value: `**Exercise Options**  
-                    [Create Exercise](command:exerciseHint.query?{"lineNumber":${lineNumber}})  
-                    [Learn More](https://example.com)`, 
+                    [Ask for a hint](command:exerciseHint.query?{"lineNumber":${lineNumber}})`, 
                     isTrusted: true,
                 }],
                 zIndex: 1000

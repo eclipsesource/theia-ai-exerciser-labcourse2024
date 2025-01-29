@@ -163,8 +163,15 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 request.response.response.addContents(contents);
                 return;
             }
-            const beforeJsonContents= this.parseContents(responseAsText.slice(0, jsonMatch.index!));
-            const afterJsoncontents =this.parseContents(responseAsText.slice(jsonMatch.index! + jsonString.length))
+            let beforeJsonContents: ChatResponseContent[] = [];
+            let afterJsonContents: ChatResponseContent[] = [];
+            if (jsonMatch && jsonMatch.index !== undefined) {
+                beforeJsonContents = this.parseContents(responseAsText.slice(0, jsonMatch.index));
+                console.log('beforeJsonContents', responseAsText.slice(0, jsonMatch.index));
+                afterJsonContents = this.parseContents(responseAsText.slice(jsonMatch.index + jsonString.length));
+            }
+            // const beforeJsonContents= this.parseContents(responseAsText.slice(0, jsonMatch.index));
+            // const afterJsoncontents =this.parseContents(responseAsText.slice(jsonMatch.index + jsonString.length))
             this.logger.info('JSON object:', jsonObj);
             const key = Object.keys(jsonObj)[0]
             switch (key) {
@@ -178,7 +185,8 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                     this.handleTerminalCommand(request, jsonObj.terminalCommands);
                     break;
                 case 'feedbackErrorLines':
-                    this.handleFeedbackErrorLines(request, jsonObj.feedbackErrorLines,beforeJsonContents,afterJsoncontents);
+                    this.handleFeedbackErrorLines(request, jsonObj.feedbackErrorLines,beforeJsonContents,afterJsonContents);
+                    break
                 default:
                     const contents = this.parseContents(responseAsText, request);
                     request.response.response.addContents(contents);
@@ -267,8 +275,8 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
 
             // Add the feedback message to the chat response
             request.response.response.addContents(beforeJsonContents);
-            request.response.response.addContent(new MarkdownChatResponseContentImpl('The following lines contain errors:'));
-            request.response.response.addContent(new MarkdownChatResponseContentImpl(`- ${feedbackErrorLines.join(', ')}`));
+            // request.response.response.addContent(new MarkdownChatResponseContentImpl('The following lines contain errors:'));
+            // request.response.response.addContent(new MarkdownChatResponseContentImpl(`- ${feedbackErrorLines.join(', ')}`));
             request.response.response.addContents(afterJsonContents);
         } catch (error) {
             this.logger.error('Error handling feedback error lines:', error);
