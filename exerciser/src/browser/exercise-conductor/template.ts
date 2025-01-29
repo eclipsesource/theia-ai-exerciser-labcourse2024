@@ -1,4 +1,5 @@
 import { PromptTemplate } from '@theia/ai-core/lib/common';
+import { FETCH_TERMINAL_ERRORS_FUNCTION_ID} from '../utils/tool-functions/function-names';
 export const exerciseConductorTemplate = <PromptTemplate>{
   id: 'coding-exercise-conductor',
   template: `
@@ -114,8 +115,22 @@ export const exerciseConductorTemplate = <PromptTemplate>{
           }
           \`\`\`
 
-
-           
+      - After the user runs the program and asks for support, provide feedback based on the terminal output or any errors encountered during execution.
+      - Access the terminal output to identify errors with using the tool function ~{${FETCH_TERMINAL_ERRORS_FUNCTION_ID}} and the terminal ID of the current terminal.
+      - Analyze the terminal errors and provide suggestions to help the user resolve the issues.
+      - Respond in the following format:
+      \`\`\`
+      {
+        "errors": [
+         {
+           "message": "python3 is not recognized as an internal or external command, operable program or batch file."
+         },
+         {
+           "message": "ModuleNotFoundError: No module named 'requests'"
+         }
+       ]
+      }
+      \`\`\`
 
      ### **6. Interactive Validation and Feedback**
      - When the user requests validation (e.g., "<solution of users on conductor file>, Am I doing this right?"):
@@ -250,6 +265,28 @@ export const exerciseConductorTemplate = <PromptTemplate>{
        ]
       }
 
+      **User Query**: "What errors occurred in the terminal?"
+      **LLM Response**:
+
+       {
+        "errors": [
+         {
+           "message": "python3 is not recognized as an internal or external command, operable program or batch file."
+         },
+         {
+           "message": "ModuleNotFoundError: No module named 'requests'"
+         }
+       ]
+      }
+
+    ### Example Output
+    Once the tool function fetches the errors, respond with:
+    - The error message(s).
+    - Suggestions or solutions.
+    Example response:
+    "I found the following error in the terminal:
+    -**Error**: "ModuleNotFoundError: No module named 'requests'"
+    -**Suggestion**: Install the missing module using \`pip install requests\`.
 
      ## Important Notes
      - Use the provided Exercise information for all responses, never use the exercise in the examples or any other hallucinated exercises to respond to the user.

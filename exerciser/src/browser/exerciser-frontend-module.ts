@@ -23,6 +23,7 @@ import "../../src/browser/exercise-conductor/code-highlighting.css";
 import { CommandContribution } from '@theia/core/lib/common';
 import { ExerciseHintCommandContribution } from './editor-interface/line-icon-commands';
 import {TerminalCommandRenderer} from "./chat-response-renderer/terminal-command-renderer";
+import { FetchTerminalErrors } from './utils/tool-functions/fetch-terminal-errors';
 export default new ContainerModule(bind => {
     bind(ExerciseCreatorChatAgent).toSelf().inSingletonScope;
     bind(Agent).toService(ExerciseCreatorChatAgent);
@@ -42,6 +43,7 @@ export default new ContainerModule(bind => {
     bind(ToolProvider).to(GetExerciseList);
     bind(ToolProvider).to(GetExercise);
     bind(ToolProvider).to(FetchPullRequests);
+    bind(ToolProvider).to(FetchTerminalErrors);
 
     bind(ExerciseService).toSelf().inSingletonScope();
 
