@@ -1,9 +1,9 @@
 import * as React from '@theia/core/shared/react';
-import { ExerciseOverview } from '../../exercise-service/types';
+import { Exercise } from '../../exercise-service/types';
 import { ExerciseItem } from "./exercise-item";
 
 export type Props = {
-    exercises: ExerciseOverview[]
+    exercises: Exercise[]
     createExerciseFile: (exerciseId: string) => Promise<void>
     removeExercise: (exerciseId: string) => Promise<void>
 }

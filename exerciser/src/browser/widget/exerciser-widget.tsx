@@ -2,17 +2,18 @@ import * as React from 'react';
 import { injectable, postConstruct, inject } from '@theia/core/shared/inversify';
 import { ReactWidget } from '@theia/core/lib/browser/widgets/react-widget';
 import { MessageService, CommandService } from '@theia/core';
-import {codicon, Message} from '@theia/core/lib/browser';
+import { codicon, Message } from '@theia/core/lib/browser';
 import { ExerciseService } from "../exercise-service";
-import { ExerciseOverview,Exercise } from '../exercise-service/types';
+import { Exercise } from '../exercise-service/types';
 import { ExerciseList } from './widget-renderer/exercise-list';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import {
    AI_CHAT_NEW_CHAT_WINDOW_WITH_PINNED_AGENT_COMMAND
 } from "@theia/ai-chat-ui/lib/browser/chat-view-commands";
-import {AI_CHAT_TOGGLE_COMMAND_ID} from "@theia/ai-chat-ui/lib/browser/ai-chat-ui-contribution";
-import {ChatAgentService} from "@theia/ai-chat";
+import { AI_CHAT_TOGGLE_COMMAND_ID } from "@theia/ai-chat-ui/lib/browser/ai-chat-ui-contribution";
+import { ChatAgentService } from "@theia/ai-chat";
+import { ImportExerciseButton } from "./widget-renderer/import-exercise-button";
 
 @injectable()
 export class ExerciserWidget extends ReactWidget {
@@ -38,7 +39,7 @@ export class ExerciserWidget extends ReactWidget {
     @inject(ChatAgentService)
     protected chatAgentService: ChatAgentService;
 
-    private exerciseList: ExerciseOverview[] = []
+    private exerciseList: Exercise[] = []
 
     @postConstruct()
     protected init(): void {
@@ -105,12 +106,15 @@ export class ExerciserWidget extends ReactWidget {
     }
 
     render(): React.ReactElement {
-
         // TODO - not working if undefined is not passed as first argument
-        const handler = async (agent: "ExerciseCreator" | "ExerciseConductor") => {
+        const handleChatRedirection = async (agent: "ExerciseCreator" | "ExerciseConductor") => {
             const chatAgent = this.chatAgentService.getAgent(agent);
             this.commandService.executeCommand(AI_CHAT_TOGGLE_COMMAND_ID)
             this.commandService.executeCommand(AI_CHAT_NEW_CHAT_WINDOW_WITH_PINNED_AGENT_COMMAND.id, undefined, chatAgent)
+        }
+
+        const handleImportExercise = (exercise: Exercise) => {
+            this.exerciseService.addExercise(exercise);
         }
 
         return <div id='widget-container' style={{
@@ -120,7 +124,15 @@ export class ExerciserWidget extends ReactWidget {
             marginRight: 20,
             marginLeft: 20,
         }}>
-            <h2>Exercise List</h2>
+            <div style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center"
+            }}>
+                <h2>Exercise List</h2>
+                <ImportExerciseButton handleImportExercise={handleImportExercise}/>
+            </div>
             <ExerciseList
                 exercises={this.exerciseList}
                 createExerciseFile = {this.createConductorFile.bind(this)}
@@ -129,10 +141,12 @@ export class ExerciserWidget extends ReactWidget {
             <div style={{flexGrow: 1}}/>
             <div style={{
                 alignSelf: "end",
-                paddingBottom: 20
+                paddingTop: 20,
+                paddingBottom: 20,
+                display: "flex",
             }}>
-                <button className={"theia-button main"} onClick={() => handler("ExerciseCreator")}>Exerciser Creator</button>
-                <button className={"theia-button main"} onClick={() => handler("ExerciseConductor")}>Exerciser Conductor</button>
+                <button className={"theia-button main"} onClick={() => handleChatRedirection("ExerciseCreator")}>Exercise Creator</button>
+                <button className={"theia-button main"} onClick={() => handleChatRedirection("ExerciseConductor")}>Exercise Conductor</button>
             </div>
         </div>
     }

@@ -1,6 +1,6 @@
-import {inject, injectable} from '@theia/core/shared/inversify';
-import {ILogger} from "@theia/core";
-import {Exercise, ExerciseOverview} from "./types";
+import { inject, injectable } from '@theia/core/shared/inversify';
+import { ILogger } from "@theia/core";
+import { Exercise } from "./types";
 import { Emitter } from '@theia/core/lib/common/event';
 
 
@@ -47,12 +47,8 @@ export class ExerciseService {
      * Retrieve a list of all exercise names and summaries.
      * @returns A list of objects containing the name and summary of each exercise.
      */
-    getExerciseList(): ExerciseOverview[] {
-        return this.exercises.map((exercise) => ({
-            exerciseId: exercise.exerciseId,
-            exerciseName: exercise.exerciseName,
-            exerciseSummarization: exercise.exerciseSummarization,
-        }));
+    getExerciseList(): Exercise[] {
+        return this.exercises;
     }
 
     /**

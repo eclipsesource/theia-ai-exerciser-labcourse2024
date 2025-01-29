@@ -1,8 +1,8 @@
 import * as React from '@theia/core/shared/react';
-import {  ExerciseOverview } from '../../exercise-service/types';
+import { Exercise } from '../../exercise-service/types';
 
 export type Props = {
-    exercise: ExerciseOverview
+    exercise: Exercise
     createExerciseFile: (exerciseId: string) => Promise<void>
     removeExercise: (exerciseId: string) => Promise<void>
 }
@@ -13,6 +13,19 @@ export const ExerciseItem: React.FC<Props> = ({ exercise,createExerciseFile, rem
     const showFileContent = () => {
         setIsOpen(prevState => !prevState);
     }
+
+    const downloadJsonFile = () => {
+        const jsonString = JSON.stringify(exercise, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${exercise.exerciseName}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
 
     return (
         <div style={{
@@ -50,6 +63,12 @@ export const ExerciseItem: React.FC<Props> = ({ exercise,createExerciseFile, rem
                 )}
             </div>
             <div style={{alignSelf: "end"}}>
+                <button
+                    className={"theia-button main"}
+                    onClick={downloadJsonFile}
+                >
+                    Download Exercise
+                </button>
                 <button
                     className={"theia-button main"}
                     onClick={() => createExerciseFile(exercise.exerciseId)}
