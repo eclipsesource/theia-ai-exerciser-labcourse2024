@@ -169,7 +169,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             if (jsonMatch && jsonMatch.index !== undefined) {
                 beforeJsonContents = this.parseContents(responseAsText.slice(0, jsonMatch.index),request);
                 console.log('beforeJsonContents', responseAsText.slice(0, jsonMatch.index), request);
-                afterJsonContents = this.parseContents(responseAsText.slice(jsonMatch.index + jsonString.length),request);
+                // afterJsonContents = this.parseContents(responseAsText.slice(jsonMatch.index + jsonString.length),request);
             }
             // const beforeJsonContents= this.parseContents(responseAsText.slice(0, jsonMatch.index));
             // const afterJsoncontents =this.parseContents(responseAsText.slice(jsonMatch.index + jsonString.length))

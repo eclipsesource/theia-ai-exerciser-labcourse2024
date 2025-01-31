@@ -14,14 +14,13 @@
 // SPDX-License-Identifier: EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0
 // *****************************************************************************
 
-import {inject, injectable} from "@theia/core/shared/inversify";
-import {ChatResponsePartRenderer} from "@theia/ai-chat-ui/lib/browser/chat-response-part-renderer";
-import {ChatResponseContent} from "@theia/ai-chat";
+import { inject, injectable } from "@theia/core/shared/inversify";
+import { ChatResponsePartRenderer } from "@theia/ai-chat-ui/lib/browser/chat-response-part-renderer";
+import { ChatResponseContent } from "@theia/ai-chat";
 import * as React from '@theia/core/shared/react';
 import { UntitledResourceResolver } from '@theia/core';
 import { MonacoEditorProvider } from '@theia/monaco/lib/browser/monaco-editor-provider';
-import {ErrorFeedbackChatResponse} from "../exercise-conductor/types";
-import {CodeWrapper} from "@theia/ai-chat-ui/lib/browser/chat-response-renderer";
+import { ErrorFeedbackChatResponse } from "../exercise-conductor/types";
 
 export interface ErrorFeedbackChatResponseContent
     extends ChatResponseContent {
@@ -46,7 +45,7 @@ export class ErrorFeedbackChatResponseContentImpl implements ErrorFeedbackChatRe
     }
 
     merge(nextChatResponseContent: ErrorFeedbackChatResponseContent): boolean {
-        this._content = {...this._content, ...nextChatResponseContent.content};
+        this._content = { ...this._content, ...nextChatResponseContent.content };
         return true;
     }
 }
@@ -78,36 +77,41 @@ export class ErrorFeedbackRenderer implements ChatResponsePartRenderer<ErrorFeed
     }
 
     render(response: ErrorFeedbackChatResponseContent): React.ReactNode {
+        const style = {
+            backgroundColor: "#1e1e1e", // Dark background like VS Code
+            color: "#d7ba7d", // Light gray text
+            padding: "10px",
+            borderRadius: "8px",
+            border: "1px solid #3c3c3c",
+            height: "auto", // Fixed height
+
+        }   
         return (
-            <div style={{display: "flex", flexDirection: "column", gap: 10, width:"100%" }}>
-                {response.content.errors.map(item => {
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
+                {response.content.errors.map((item,index) => {
                     return (
                         <div key={item.errorTitle}>
                             <div style={{
                                 display: "flex",
                                 flexDirection: "row",
-                                justifyContent: "end",
                                 alignItems: "center",
                                 gap: 10
                             }}>
-                                <p style={{flexGrow: 1}}>{item.errorTitle}</p>
-                                <span
+                                <p style={{ flexGrow: 1,fontWeight:"bold", fontSize:"14px"}}>{index+1}. {item.errorTitle}</p>
+                                {item.lines?.length && <span
                                     className="codicon codicon-issues"
                                     title="show the problem in the editor"
                                     onClick={() => response.content.highlightLines(item.lines)}
-                                />
-                                
+                                />}
+
                             </div>
                             <div className="theia-CodePartRenderer-bottom">
-                                <CodeWrapper
-                                    content={item.description}
-                                    untitledResourceResolver={this.untitledResourceResolver}
-                                    editorProvider={this.editorProvider}
-                                    contextMenuCallback={e => {}}
-                                ></CodeWrapper>
+                                <div style={style}>
+                                    <span >{item.description}</span>
+                                </div>
                             </div>
                         </div>
-                )
+                    )
                 })}
             </div>
         )

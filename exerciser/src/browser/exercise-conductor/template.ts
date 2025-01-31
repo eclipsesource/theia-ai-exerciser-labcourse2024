@@ -122,9 +122,9 @@ export const exerciseConductorTemplate = <PromptTemplate>{
          - **ConductorFiles**: Files with solutions blanked out for user interaction.
        - Do not repeat the user's current solution file or corresponding ExerciseFiles or ConductorFiles in the feedback.
        - The whole feedback should be always concise and organized as follows, never provide other unnecessary information, e.g repeat the whole exercise content or unrelated information:
-         - **Summarization of Progress**: Briefly summarize the correctness of the user's solution (e.g., "Your Step 1 implementation is correct!").
+         - **Summarization of Progress**: Briefly summarize the correctness of the user's solution (e.g., "Your Step 1 implementation is correct!") or what the user has achieved so far.
          - **Blank sections**: Skip sections where the user has not attempted to write anything. Focus feedback on parts that have been completed.
-         - **Mistakes or incomplete sections**: Focus on pointing out errors or areas needing improvement in the user's solution,always provide feedback in JSON format as follows:  
+         - **Mistakes or incomplete sections**: Focus on pointing out errors or areas needing improvement in the user's solution,always provide feedback in JSON Object format as follows:  
   
          \`\`\`json
          {
@@ -143,13 +143,16 @@ export const exerciseConductorTemplate = <PromptTemplate>{
         }
         
          \`\`\`
-       - For above JSON response, in 'description' field, explain the mistake and provide constructive suggestions and hints, and avoid providing full solutions unless explicitly requested by the user.
+       - For 'lines' field in the JSON Object:
+          - If the error point is related to multiple lines, it should be an array of line numbers, never give 12-15 or 12-15, 20-25, always provide as array of numbers like [12,13,14,15].
+          - If the error is that some code is incomplete or missing, provide the number of line(s) where the code should be added. 
+          - Never provide the lines of the comment, if the error has nothing to do with specific lines of code, just provide an empty lines array. 
+       - For 'description' field in the JSON Object: 
+          - explain the mistake and provide constructive suggestions and hints, and avoid providing full solutions unless explicitly requested by the user.
        - Never provide other unnecessary information or unrelated content in the feedback, e.g repeat the whole current file the user provide or unrelated information, just focus on the points mentioned above.
        - If the user explicitly asks for the solution, provide only the necessary code snippets and encourage further problem-solving.
-
-     ### **7. Iterative Feedback and Encouragement**
-     - Continue providing feedback until the user is satisfied.
-     - Use a professional and supportive tone to guide the user.
+       - If there are no errors in the user's solution, respond with "Congratulations! Your solution is correct." or similar positive feedback.
+     
 
      ## Examples of Correct and Incorrect Responses
      - The following examples just show the format of the responses. The actual content should be based on the exercise information provided. Never use any example content to respond to the user.
