@@ -77,8 +77,7 @@ export class LineIconContribution implements FrontendApplicationContribution {
             decorationOptions = {
                 hoverMessage: {
                     value: `**Exercise Options**  
-                        [Create Exercise](command:exerciseHint.query?{"lineNumber":${lineNumber}})  
-                        [Learn More](https://example.com)`,
+                    [Ask for a hint](command:exerciseHint.query?{"lineNumber":${lineNumber}})`, 
                     isTrusted: true,
                 },
 

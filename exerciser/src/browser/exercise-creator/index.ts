@@ -29,9 +29,10 @@ import {
 import { injectable } from '@theia/core/shared/inversify';
 import { exerciseCreatorTemplate } from "./template";
 import { CREATE_FILE_FUNCTION_ID, FETCH_PULL_REQUESTS_FUNCTION_ID, GET_FILE_CONTENT_FUNCTION_ID, GET_WORKSPACE_FILES_FUNCTION_ID } from '../utils/tool-functions/function-names';
-import { ChatRequestModelImpl, MarkdownChatResponseContentImpl } from "@theia/ai-chat";
+import { ChatRequestModelImpl, MarkdownChatResponseContentImpl,ToolCallChatResponseContentImpl } from "@theia/ai-chat";
 import { ExerciseChatResponseContentImpl } from "../chat-response-renderer/exercise-renderer";
 import { ExerciseChatResponse } from "./types";
+import { isLanguageModelStreamResponse, isLanguageModelTextResponse, isLanguageModelParsedResponse } from '@theia/ai-core';
 
 @injectable()
 export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent implements ChatAgent {
@@ -67,16 +68,44 @@ export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent imp
         return resolvedPrompt ? SystemMessageDescription.fromResolvedPromptTemplate(resolvedPrompt) : undefined;
     }
 
+    protected async parseTextResponse(response: LanguageModelResponse, request: ChatRequestModelImpl): Promise<string> {
+        if (isLanguageModelTextResponse(response)) {
+            return response.text;
+        } else if (isLanguageModelStreamResponse(response)) {
+            let result = '';
+            for await (const chunk of response.stream) {
+                const toolCalls = chunk.tool_calls;
+                if (toolCalls !== undefined) {
+                    const toolCallContents = toolCalls.map(toolCall =>
+                        new ToolCallChatResponseContentImpl(toolCall.id, toolCall.function?.name, toolCall.function?.arguments, toolCall.finished, toolCall.result));
+                    request.response.response.addContents(toolCallContents);
+                }
+                result += chunk.content ?? ''
+
+            }
+            return result;
+        } else if (isLanguageModelParsedResponse(response)) {
+            return response.content;
+        }
+        throw new Error(`Invalid response type ${response}`);
+    }
+
     protected override async addContentsToResponse(response: LanguageModelResponse, request: ChatRequestModelImpl): Promise<void> {
-        const responseText = await getTextOfResponse(response);
-        const jsonRegex = /{[\s\S]*}/;
+        const responseText = await this.parseTextResponse(response,request);
+        this.logger.debug(`Response text: ${responseText}`);
+        console.log(`Response text: ${responseText}`);
+        const jsonRegex = /(\{[\s\S]*\})/;
         const jsonMatch = responseText.match(jsonRegex);
         if (jsonMatch) {
-            const jsonString = jsonMatch[0];
+
+
+            const jsonString = jsonMatch[1];
+            console.log(`jsonMatch: ${responseText}`);
             const beforeJson = responseText.slice(0, jsonMatch.index!);
             request.response.response.addContent(new MarkdownChatResponseContentImpl(beforeJson));
-            try {;
-                const exerciseCreatorResponse: ExerciseChatResponse = {...JSON.parse(jsonString), renderSwitch: "exerciseFiles"};
+            try {
+                
+                const exerciseCreatorResponse: ExerciseChatResponse = { ...JSON.parse(jsonString), renderSwitch: "exerciseFiles" };
                 const exerciseContentChatResponse = new ExerciseChatResponseContentImpl(exerciseCreatorResponse);
                 request.response.response.addContent(exerciseContentChatResponse);
             } catch (error) {

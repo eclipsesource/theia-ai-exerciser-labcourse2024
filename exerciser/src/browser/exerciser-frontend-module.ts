@@ -24,6 +24,7 @@ import { CommandContribution } from '@theia/core/lib/common';
 import { ExerciseHintCommandContribution } from './editor-interface/line-icon-commands';
 import {TerminalCommandRenderer} from "./chat-response-renderer/terminal-command-renderer";
 import { FetchTerminalErrors } from './utils/tool-functions/fetch-terminal-errors';
+import { ErrorFeedbackRenderer } from './chat-response-renderer/error-feedback-renderer';
 export default new ContainerModule(bind => {
     bind(ExerciseCreatorChatAgent).toSelf().inSingletonScope;
     bind(Agent).toService(ExerciseCreatorChatAgent);
@@ -49,6 +50,7 @@ export default new ContainerModule(bind => {
 
     bind(ChatResponsePartRenderer).to(ExerciseRenderer).inSingletonScope();
     bind(ChatResponsePartRenderer).to(TerminalCommandRenderer).inSingletonScope();
+    bind(ChatResponsePartRenderer).to(ErrorFeedbackRenderer).inSingletonScope();
 
     bindViewContribution(bind, WidgetContribution);
     bind(FrontendApplicationContribution).toService(WidgetContribution);

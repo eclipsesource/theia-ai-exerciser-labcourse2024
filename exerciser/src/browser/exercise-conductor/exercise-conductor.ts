@@ -15,14 +15,14 @@
 // *****************************************************************************
 
 import { AbstractStreamParsingChatAgent, ChatAgent, SystemMessageDescription } from '@theia/ai-chat/lib/common';
-import { AgentSpecificVariables, PromptTemplate, ToolInvocationRegistry, getTextOfResponse, } from '@theia/ai-core';
+import { AgentSpecificVariables, PromptTemplate, ToolInvocationRegistry,  } from '@theia/ai-core';
 import { inject, injectable, postConstruct } from '@theia/core/shared/inversify';
 import { exerciseConductorTemplate } from "./template";
-import { GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID,FETCH_TERMINAL_ERRORS_FUNCTION_ID } from '../utils/tool-functions/function-names';
-import { ChatRequestModelImpl,    ChatResponseContent,} from '@theia/ai-chat/lib/common';
+import { GET_EXERCISE_LIST_FUNCTION_ID, GET_EXERCISE_FUNCTION_ID, FETCH_TERMINAL_ERRORS_FUNCTION_ID } from '../utils/tool-functions/function-names';
+import { ChatRequestModelImpl, ChatResponseContent, } from '@theia/ai-chat/lib/common';
 import { LanguageModelResponse } from '@theia/ai-core';
 import { ExerciseService } from '../exercise-service';
-import { MarkdownChatResponseContentImpl } from "@theia/ai-chat";
+import { MarkdownChatResponseContentImpl,ToolCallChatResponseContentImpl } from "@theia/ai-chat";
 import { Exercise, ExerciseOverview } from '../exercise-service/types';
 import { ExerciseChatResponseContentImpl } from '../chat-response-renderer/exercise-renderer';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
@@ -37,7 +37,8 @@ import { TerminalService } from "@theia/terminal/lib/browser/base/terminal-servi
 import { TerminalWidgetFactoryOptions } from "@theia/terminal/lib/browser/terminal-widget-impl"
 import { MonacoEditor } from '@theia/monaco/lib/browser/monaco-editor';
 import { DisposableCollection } from '@theia/core';
-
+import { isLanguageModelStreamResponse, isLanguageModelTextResponse, isLanguageModelParsedResponse } from '@theia/ai-core';
+import { ErrorFeedbackChatResponseContentImpl } from '../chat-response-renderer/error-feedback-renderer';
 import * as monaco from '@theia/monaco-editor-core';
 
 @injectable()
@@ -87,10 +88,14 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 name: 'exercisesInService',
                 description: 'The list of exercises available for the user to choose from.',
                 usedInPrompt: true,
+            },  {
+                name: 'currentFileWithNumberedLines',
+                description: 'The content of the currently active file with line numbers.',
+                usedInPrompt: true,
             }, {
-                name: 'command-ids',
-                description: 'The list of available commands in Theia.',
-                usedInPrompt: true
+                name: 'currentFileName',
+                description: 'The name of the currently active file in the editor.',
+                usedInPrompt: true,
             }
         ];
 
@@ -111,37 +116,32 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
 
      */
 
-    protected async parseTextResponse(text: string): Promise<{ function: string; parameters?: any }> {
-        try {
-            const jsonMatch = text.match(/(\{[\s\S]*\})/);
-            if (!jsonMatch) {
-                throw new Error('No valid JSON found in response text.');
+    protected async parseTextResponse(response: LanguageModelResponse, request: ChatRequestModelImpl): Promise<string> {
+        if (isLanguageModelTextResponse(response)) {
+            return response.text;
+        } else if (isLanguageModelStreamResponse(response)) {
+            let result = '';
+            for await (const chunk of response.stream) {
+                const toolCalls = chunk.tool_calls;
+                if (toolCalls !== undefined) {
+                    const toolCallContents = toolCalls.map(toolCall =>
+                        new ToolCallChatResponseContentImpl(toolCall.id, toolCall.function?.name, toolCall.function?.arguments, toolCall.finished, toolCall.result));
+                    request.response.response.addContents(toolCallContents);
+                }
+                result += chunk.content ?? ''
+
             }
-
-            return JSON.parse(jsonMatch[1]);
-        } catch (error) {
-            console.error('Error parsing LLM response:', error);
-            return { function: 'unknown' };
+            return result;
+        } else if (isLanguageModelParsedResponse(response)) {
+            return response.content;
         }
+        throw new Error(`Invalid response type ${response}`);
     }
-
-
-    protected async parseTextResponseCommand(text: string): Promise<any> {
-        const jsonMatch = text.match(/{(?:[^{}]|{[^{}]*})*}/g) || [];
-        const parsedCommand: any[] = [];
-        jsonMatch.forEach(match => {
-            parsedCommand.push(JSON.parse(match));
-        })
-        return parsedCommand;
-    }
-
-
-
 
     protected override async addContentsToResponse(response: LanguageModelResponse, request: ChatRequestModelImpl): Promise<void> {
         this.logger.info('Response as text:', response);
 
-        const responseAsText = await getTextOfResponse(response);
+        const responseAsText = await this.parseTextResponse(response,request);
         this.logger.info('Response as text:', responseAsText);
         const jsonMatch = responseAsText.match(/(\{[\s\S]*\})/);
         this.logger.info('Response as text:', responseAsText);
@@ -167,9 +167,9 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             let beforeJsonContents: ChatResponseContent[] = [];
             let afterJsonContents: ChatResponseContent[] = [];
             if (jsonMatch && jsonMatch.index !== undefined) {
-                beforeJsonContents = this.parseContents(responseAsText.slice(0, jsonMatch.index));
-                console.log('beforeJsonContents', responseAsText.slice(0, jsonMatch.index));
-                afterJsonContents = this.parseContents(responseAsText.slice(jsonMatch.index + jsonString.length));
+                beforeJsonContents = this.parseContents(responseAsText.slice(0, jsonMatch.index),request);
+                console.log('beforeJsonContents', responseAsText.slice(0, jsonMatch.index), request);
+                afterJsonContents = this.parseContents(responseAsText.slice(jsonMatch.index + jsonString.length),request);
             }
             // const beforeJsonContents= this.parseContents(responseAsText.slice(0, jsonMatch.index));
             // const afterJsoncontents =this.parseContents(responseAsText.slice(jsonMatch.index + jsonString.length))
@@ -185,9 +185,9 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 case 'terminalCommands':
                     this.handleTerminalCommand(request, jsonObj.terminalCommands);
                     break;
-                case 'feedbackErrorLines':
-                    this.handleFeedbackErrorLines(request, jsonObj.feedbackErrorLines,beforeJsonContents,afterJsonContents);
-                    break
+                case 'errorFeedbacks':
+                    this.handleFeedbackErrorLines(request, jsonObj.errorFeedbacks, beforeJsonContents, afterJsonContents);
+                    break;
                 default:
                     const contents = this.parseContents(responseAsText, request);
                     request.response.response.addContents(contents);
@@ -245,13 +245,13 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
     }
     protected async handleTerminalCommand(request: ChatRequestModelImpl, parsedCommands: any[]): Promise<void> {
         try {
-            
-    
+
+
             if (parsedCommands.length > 0) {
                 // Add terminal commands with interactive buttons
                 request.response.response.addContent(
                     new TerminalCommandChatResponseContentImpl({
-                        commands: parsedCommands, 
+                        commands: parsedCommands,
                         insertCallback: this.insertCommand.bind(this),
                         insertAndRunCallback: this.insertAndRunCommand.bind(this),
                     })
@@ -269,13 +269,13 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             );
         }
     }
-    protected handleFeedbackErrorLines(request: ChatRequestModelImpl, feedbackErrorLines: number[],beforeJsonContents:ChatResponseContent[],afterJsonContents: ChatResponseContent[]): void {
+    protected handleFeedbackErrorLines(request: ChatRequestModelImpl, errorFeedbacks: any[], beforeJsonContents: ChatResponseContent[], afterJsonContents: ChatResponseContent[]): void {
         try {
             // Highlight the error lines in the editor
-            this.highlightLines(feedbackErrorLines);
-
-            // Add the feedback message to the chat response
             request.response.response.addContents(beforeJsonContents);
+
+            request.response.response.addContent(new ErrorFeedbackChatResponseContentImpl({errors:errorFeedbacks,highlightLines:this.highlightLines.bind(this)}));
+            // Add the feedback message to the chat response
             // request.response.response.addContent(new MarkdownChatResponseContentImpl('The following lines contain errors:'));
             // request.response.response.addContent(new MarkdownChatResponseContentImpl(`- ${feedbackErrorLines.join(', ')}`));
             request.response.response.addContents(afterJsonContents);
@@ -360,7 +360,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
 
             const currentFileName = await this.getCurrentFileName();
 
-            if(!currentFileName){
+            if (!currentFileName) {
                 this.logger.warn('No active file found. Skipping currentFileName in the prompt.');
             }
 
@@ -370,7 +370,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
                 lineCount: 0,
             };
 
-            const numberedLines = linesWithNumbers
+            const currentFileWithNumberedLines = linesWithNumbers
                 .map(({ lineNumber, content }) => `Line ${lineNumber}: ${content}`)
                 .join('\n');
 
@@ -378,9 +378,9 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
 
             const resolvedPrompt = await this.promptService.getPrompt(exerciseConductorTemplate.id, {
                 exercisesInService: exercises,
-                currentFileText: fileText,
-                numberedLines: numberedLines || 'No active file content available.',
-                lineCount: lineCount,
+                // currentFileText: fileText,
+                currentFileWithNumberedLines: currentFileWithNumberedLines || 'No active file content available.',
+                // lineCount: lineCount,
                 currentFileName: currentFileName || 'No active file found.',
             });
 
@@ -400,51 +400,51 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
          * If there was no json in the text, return a no-command response.
          */
 
-    
-    
-        // protected createResponseContent(parsedCommand: any, request: ChatRequestModelImpl): ChatResponseContent {
-        //     if (parsedCommand) {
-        //         return new TerminalCommandChatResponseContentImpl({
-        //             commands: parsedCommand,
-        //             insertCallback: this.insertCommand.bind(this),
-        //             insertAndRunCallback: this.insertAndRunCommand.bind(this)
-        //         });
-        //     } else {
-        //         return new MarkdownChatResponseContentImpl('Sorry, I can\'t find a suitable command for you');
-        //     }
-        // }
 
-        protected async insertCommand(command: string): Promise<void> {
-            try {
-                let terminal = this.terminalService.currentTerminal;
-        
-                if (!terminal) {
-                    terminal = await this.createTerminal();
-                } else {
-                    await this.terminalService.open(terminal);
-                }
-        
-                await new Promise(resolve => setTimeout(resolve, 150));
-                terminal.sendText(command);
-                this.logger.info(`Inserted command: ${command}`);
-            } catch (error) {
-                this.logger.error('Error inserting command:', error);
-            }
-        }
-        
-    
-        protected async insertAndRunCommand(command: string): Promise<void> {
+
+    // protected createResponseContent(parsedCommand: any, request: ChatRequestModelImpl): ChatResponseContent {
+    //     if (parsedCommand) {
+    //         return new TerminalCommandChatResponseContentImpl({
+    //             commands: parsedCommand,
+    //             insertCallback: this.insertCommand.bind(this),
+    //             insertAndRunCallback: this.insertAndRunCommand.bind(this)
+    //         });
+    //     } else {
+    //         return new MarkdownChatResponseContentImpl('Sorry, I can\'t find a suitable command for you');
+    //     }
+    // }
+
+    protected async insertCommand(command: string): Promise<void> {
+        try {
             let terminal = this.terminalService.currentTerminal;
+
             if (!terminal) {
                 terminal = await this.createTerminal();
+            } else {
+                await this.terminalService.open(terminal);
             }
-            terminal.sendText(command + '\r\n');
+
+            await new Promise(resolve => setTimeout(resolve, 150));
+            terminal.sendText(command);
+            this.logger.info(`Inserted command: ${command}`);
+        } catch (error) {
+            this.logger.error('Error inserting command:', error);
         }
-    
-        async createTerminal() {
-            const terminal = await this.terminalService.newTerminal(<TerminalWidgetFactoryOptions>{ created: new Date().toString() });
-            await terminal.start();
-            this.terminalService.open(terminal);
+    }
+
+
+    protected async insertAndRunCommand(command: string): Promise<void> {
+        let terminal = this.terminalService.currentTerminal;
+        if (!terminal) {
+            terminal = await this.createTerminal();
+        }
+        terminal.sendText(command + '\r\n');
+    }
+
+    async createTerminal() {
+        const terminal = await this.terminalService.newTerminal(<TerminalWidgetFactoryOptions>{ created: new Date().toString() });
+        await terminal.start();
+        this.terminalService.open(terminal);
 
         await new Promise(resolve => setTimeout(resolve, 150));
         this.logger.info('Terminal created successfully.');
