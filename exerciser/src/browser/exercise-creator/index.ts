@@ -94,12 +94,12 @@ export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent imp
         const responseText = await this.parseTextResponse(response,request);
         this.logger.debug(`Response text: ${responseText}`);
         console.log(`Response text: ${responseText}`);
-        const jsonRegex = /(\{[\s\S]*\})/;
+        const jsonRegex = /{[\s\S]*}/;
         const jsonMatch = responseText.match(jsonRegex);
         if (jsonMatch) {
 
 
-            const jsonString = jsonMatch[1];
+            const jsonString = jsonMatch[0];
             console.log(`jsonMatch: ${responseText}`);
             const beforeJson = responseText.slice(0, jsonMatch.index!);
             request.response.response.addContent(new MarkdownChatResponseContentImpl(beforeJson));
@@ -109,7 +109,9 @@ export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent imp
                 const exerciseContentChatResponse = new ExerciseChatResponseContentImpl(exerciseCreatorResponse);
                 request.response.response.addContent(exerciseContentChatResponse);
             } catch (error) {
-                request.response.response.addContent(new ErrorChatResponseContentImpl(new Error("Error while parsing files")));
+                const contents = this.parseContents(responseText, request);
+                request.response.response.addContents(contents);
+                // request.response.response.addContent(new ErrorChatResponseContentImpl(new Error("Error while parsing files")));
             }
         } else {
             request.response.response.addContent(new MarkdownChatResponseContentImpl(responseText));
