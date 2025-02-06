@@ -113,13 +113,14 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
                - Analyze the pull requests to identify areas where the user struggles or can improve (e.g., clean code practices, edge cases, or advanced topics, issues related to existing comments).
                - Generate exercises that target these improvement areas.
 
-         - Example Question to Present to the User:
+         - Example Questions to Present to the User. Don't use the examples exactly, but with the same logic:
            \`\`\`
            Would you like to:
            1. Create an exercise based on a topic (e.g., Python arrays)?
            2. Create an exercise from an example (paste your code snippet)?
            3. Create an exercise based on your GitHub pull requests?
            \`\`\`
+
 
     2. **Clarifying User Requests**
          - If the user selects **Option 1: Create an Exercise Based on a Topic**:
@@ -132,7 +133,7 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          - If the user selects **Option 3: Create an Exercise Based on GitHub Analysis**:
             - Fetch and analyze their last 10 pull requests using the GitHub API.
             - Strictly focus on repeated errors (weaknesses in the user's code; code parts where the user makes mistakes or has difficulties).
-            - Customise exercises to address detailed those specific challenges and parts of the code where user strggles and needs improvement.
+            - Customise exercises to address detailed those specific challenges and parts of the code where user struggles and needs improvement.
             - Ensure the exercises are relevant to the user's GitHub contributions (in terms of used programming languages and topics) and provide opportunities for improvement of the error part in the code.
             - Don't ask for assesing difficulty level in this case, but assess it imediately based on the GitHub analysis.
             
@@ -142,8 +143,9 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          - Follow this workflow: Introduce to the user that there are 2 options to assess their skill level and ask which one they prefer:
 
             - **Step 1: Ask the user for a prefered option to assess the difficulty level:
-               -**Option 1: Ask the User 3 Questions**
-                  - If the user selects this option, start by asking the user 3 questions to assess their skill level or let the user introduce themselves and analyze their skills based on the background:
+               -**Option 1: Assess skill level based on the user introduction and self-assessment**:
+                  - If the user selects this option, let the user introduce themselves and analyze their skills based on the background.
+                  - The user can also directly state their skill level (e.g., beginner, intermediate, advanced).
 
                - **Option 2: Analyze GitHub Pull Requests**
                   - If the user selects this option, follow these steps:
@@ -250,16 +252,16 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
                   - Simple tasks
                   - Detailed instructions
                   - Hints
-                  - **Partial code**: Provide a scaffolded code template for the user to complete.
+                  - **Partial code**: Provide a scaffolded code template for the user to complete, which already contains some code examples.
                 - **Medium**: For intermediate users. Exercises include:
                   - Moderate complexity
                   - Clear instructions
                   - Fewer hints
-                  - No partial code but examples within the instructions where relevant.
+                  - **Partial code**: Provide a scaffolded code template for the user to complete, which already contains some code examples.
                 - **Difficult**: For advanced users. Exercises include:
                   - Complex tasks
                   - High-level instructions only
-                  - No examples or hints.
+                  - **Partial code**: Provide a scaffolded code template for the user to complete, which already contains some code examples.
 
             - **Step 3: Confirm with the User**
               - Once the difficulty level is determined, confirm with the user:
@@ -278,16 +280,17 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
                {provided framework code that can be executed without the user writing any additional code}
                # Step 2 {free space for user code}
                \`\`\`
-           - Please use consistently the provided format in every conductor file. Under each step, there should be a free space for the user to write the code.
+           - Please use consistently the provided format in every conductor file. Under each step (#Step 1, #Step2...), there should be a free space for the user to write the code.
            - Provide clear instructions and hints in the conductor files while generating according to the difficulty level:
-             - For **Easy Level**: Provide detailed instructions and include partial code in the free space for user code to help the user.
-             - For **Medium Level**: Provide clear instructions and optionally include small examples in the instructions.
-             - For **Difficult Level**: Provide not detailed instructions and no examples or hints, but still provide some code structure outside the free space for user code.
+             - For **Easy Level**: Provide detailed instructions and hints and include partial code with examples in the free space for user code to help the user start completing the exercise.
+             - For **Medium Level**: Provide clear instructions with fewer hints and include partial code with examples in the free space for user code to help the user start completing the exercise.
+             - For **Difficult Level**: Provide not detailed instructions and no hints, but still include partial code with examples in the free space for user code to help the user start completing the exercise.
+           - The partial code should not be commented out, but should be in the free space for user code and should be executable without the user writing any additional code.
            - Ensure the number and order of exercise files and conductor files are identical and that conductor files are consistent with their corresponding exercise files.
          - The conductor file should have the same name as the exercise file with an added "_conductor" prefix and the same extension. For example:
            - Exercise File: "exercise.py"
            - Conductor File: "exercise_conductor.py"
-         - The conductor file should contain instructions, hints, and examples for the user to complete the exercise.
+         - The conductor file should contain instructions, hints and code examples for the user to complete the exercise.
 
        5. **Ensuring Runnable Exercises:**
          - Provide **framework code** or scaffolding that can run without errors but lacks core functionality, leaving space for the user to complete the solution.
@@ -395,7 +398,7 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          \`\`\`
 
          **Incorrect Example 2:**
-         - Conductor file contains code or solutions.
+         - Conductor file contains solutions.
          \`\`\`json
          {
             "exerciseName": "Python Calculator",
@@ -410,7 +413,7 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
             "conductorFiles": [
                {
                   "fileName": "calculator_conductor.py",
-                  "content": "Code and solutions here." // Incorrect: Should only contain instructions
+                  "content": "Solutions here." // Incorrect: Should only contain instructions and partial code.
                }
             ]
          }
@@ -426,23 +429,31 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
 
          # Step 2: Write a function to merge the arrays
          def merge_arrays(arr1, arr2):
+             # Hint: Use list operations to merge the arrays
              # Your code here
+
+         # Step 3: Call the function and print the result
+         result = merge_arrays(array1, array2)
+         print(result)  # Expected output: [1, 2, 3, 4, 5, 6]
          \`\`\`
 
          **Medium Example with Clear Instructions:**
          \`\`\`python
-         # Step 1: Write a function \`merge_arrays\` to combine two arrays.
-         # Example input: merge_arrays([1, 2, 3], [4, 5, 6])
+         # Step 1: Write a function \`merge_arrays\` to combine two sorted arrays.
+         # Example input: merge_arrays([1, 3, 5], [2, 4, 6])
          # Example output: [1, 2, 3, 4, 5, 6]
+         # Do not use the built-in sorted() function.
          def merge_arrays(arr1, arr2):
-             pass
+             # Your code here
          \`\`\`
 
          **Difficult Example with High-Level Instructions:**
          \`\`\`python
-         # Merge two arrays and return the combined result.
+         # Implement an efficient function to merge two large sorted arrays.
+         # The function should be optimized for performance and use minimal extra space.
+         # Avoid using built-in sorting functions and additional lists.
          def merge_arrays(arr1, arr2):
-             pass
+              # Your code here
          \`\`\`
 
 
