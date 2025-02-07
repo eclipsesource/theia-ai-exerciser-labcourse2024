@@ -112,6 +112,7 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
                     \`\`\`
                - Analyze the pull requests to identify areas where the user struggles or can improve (e.g., clean code practices, edge cases, or advanced topics, issues related to existing comments).
                - Generate exercises that target these improvement areas.
+               - Never ask for the difficulty level in this case, instead of this - assess it directly based on the GitHub analysis.
 
          - Example Questions to Present to the User. Don't use the examples exactly, but with the same logic:
            \`\`\`
@@ -262,6 +263,9 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
                   - Complex tasks
                   - High-level instructions only
                   - **Partial code**: Provide a scaffolded code template for the user to complete, which already contains some code examples.
+               - Partial code should be provided also when generating customized exercises based on GitHub analysis.
+               - Follow the same logic for the content of the exercises, so don't provide whole solutions in the conductor files, but a framework code with instructions, hints, partial code examples and free space with steps for user's code.
+               - The partial code should not be commented out, but should be in the free space for user code and should be executable without the user writing any additional code.
 
             - **Step 3: Confirm with the User**
               - Once the difficulty level is determined, confirm with the user:
@@ -276,21 +280,28 @@ export const exerciseCreatorTemplate = <PromptTemplate>{
          - Example Obligatory Format:
                \`\`\`
                {provided framework code that can be executed without the user writing any additional code}
-               # Step 1 {free space for user code}
+               # Step 1 
+               #Your code here
+               {free space for user code}
                {provided framework code that can be executed without the user writing any additional code}
-               # Step 2 {free space for user code}
+               # Step 2 
+               #Your code here
+               {free space for user code} 
                \`\`\`
            - Please use consistently the provided format in every conductor file. Under each step (#Step 1, #Step2...), there should be a free space for the user to write the code.
+           - For steps use this comment format: # Step 1, # Step 2, # Step 3, etc., avoid comments in ''' or """, use # instead.
            - Provide clear instructions and hints in the conductor files while generating according to the difficulty level:
              - For **Easy Level**: Provide detailed instructions and hints and include partial code with examples in the free space for user code to help the user start completing the exercise.
              - For **Medium Level**: Provide clear instructions with fewer hints and include partial code with examples in the free space for user code to help the user start completing the exercise.
              - For **Difficult Level**: Provide not detailed instructions and no hints, but still include partial code with examples in the free space for user code to help the user start completing the exercise.
            - The partial code should not be commented out, but should be in the free space for user code and should be executable without the user writing any additional code.
-           - Ensure the number and order of exercise files and conductor files are identical and that conductor files are consistent with their corresponding exercise files.
+           - Ensure the number and order of exercise files and conductor files are identical.
+           - Ensure that conductor files (all with the steps, instructions, hints and partial code) are consistent with the content of their corresponding exercise files, that alo contain solutions. Conductor file should be extracted from the exercise file.
          - The conductor file should have the same name as the exercise file with an added "_conductor" prefix and the same extension. For example:
            - Exercise File: "exercise.py"
            - Conductor File: "exercise_conductor.py"
          - The conductor file should contain instructions, hints and code examples for the user to complete the exercise.
+         - Do not provide full solutions in the conductor files unless explicitly requested by the user.
 
        5. **Ensuring Runnable Exercises:**
          - Provide **framework code** or scaffolding that can run without errors but lacks core functionality, leaving space for the user to complete the solution.
