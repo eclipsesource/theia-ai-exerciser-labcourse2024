@@ -104,6 +104,7 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
     }
     @postConstruct()
     init(): void {
+        super.init();
         this.editorManager.onCurrentEditorChanged((editor) => {
 
             this.clearHighlights();
@@ -363,8 +364,8 @@ export class ExerciseConductorAgent extends AbstractStreamParsingChatAgent imple
             if (!currentFileName) {
                 this.logger.warn('No active file found. Skipping currentFileName in the prompt.');
             }
-
-            const { fileText, linesWithNumbers, lineCount } = currentFileText || {
+            // const { fileText, linesWithNumbers, lineCount } = currentFileText || {
+            const { linesWithNumbers} = currentFileText || {
                 fileText: 'No active file content available.',
                 linesWithNumbers: [],
                 lineCount: 0,

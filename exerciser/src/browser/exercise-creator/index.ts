@@ -17,12 +17,12 @@
 import {
     AbstractStreamParsingChatAgent,
     ChatAgent,
-    ErrorChatResponseContentImpl,
+    // ErrorChatResponseContentImpl,
     SystemMessageDescription
 } from '@theia/ai-chat/lib/common';
 import {
     AgentSpecificVariables,
-    getTextOfResponse,
+    // getTextOfResponse,
     LanguageModelResponse,
     PromptTemplate
 } from '@theia/ai-core';
@@ -114,7 +114,9 @@ export class ExerciseCreatorChatAgent extends AbstractStreamParsingChatAgent imp
                 // request.response.response.addContent(new ErrorChatResponseContentImpl(new Error("Error while parsing files")));
             }
         } else {
-            request.response.response.addContent(new MarkdownChatResponseContentImpl(responseText));
+            // request.response.response.addContent(new MarkdownChatResponseContentImpl(responseText));
+            const contents = this.parseContents(responseText, request);
+            request.response.response.addContents(contents);
         }
     }
 }
