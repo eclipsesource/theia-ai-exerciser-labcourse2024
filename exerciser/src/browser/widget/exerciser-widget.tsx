@@ -121,16 +121,17 @@ export class ExerciserWidget extends ReactWidget {
             display: "flex",
             flexDirection: "column",
             height: "100%",
-            marginRight: 20,
-            marginLeft: 20,
+            gap: 10
         }}>
             <div style={{
                 display: "flex",
                 flexDirection: "row",
                 justifyContent: "space-between",
-                alignItems: "center"
+                alignItems: "center",
+                paddingRight: 20,
+                paddingLeft: 10,
             }}>
-                <h2>Exercise List</h2>
+                <b>Exercises</b>
                 <ImportExerciseButton handleImportExercise={handleImportExercise}/>
             </div>
             <ExerciseList
@@ -140,13 +141,19 @@ export class ExerciserWidget extends ReactWidget {
             />
             <div style={{flexGrow: 1}}/>
             <div style={{
-                alignSelf: "end",
-                paddingTop: 20,
-                paddingBottom: 20,
                 display: "flex",
+                flexDirection: "row",
+                margin: 10,
+                padding: 10,
+                alignItems: "center",
+                backgroundColor: "var(--theia-editor-background)",
+                borderStyle: "solid",
+                borderWidth: 1,
+                borderColor: "var(--theia-dropdown-border)"
             }}>
-                <button className={"theia-button main"} onClick={() => handleChatRedirection("ExerciseCreator")}>Exercise Creator</button>
-                <button className={"theia-button main"} onClick={() => handleChatRedirection("ExerciseConductor")}>Exercise Conductor</button>
+                <b style={{flexGrow: 1}}>Agents</b>
+                <button className={"theia-button"} onClick={() => handleChatRedirection("ExerciseCreator")}>Exercise Creator</button>
+                <button className={"theia-button"} onClick={() => handleChatRedirection("ExerciseConductor")}>Exercise Conductor</button>
             </div>
         </div>
     }

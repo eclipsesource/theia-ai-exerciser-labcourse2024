@@ -36,6 +36,13 @@ export const ImportExerciseButton: React.FC<Props> = ({handleImportExercise}) =>
 
     return (
         <>
+            <span
+                className={`option`}
+                title={"Import Exercise"}
+                onClick={onButtonClick}
+            >
+                <span className={`codicon codicon-file-add`}/>
+            </span>
             <input
                 type='file'
                 id='file'
@@ -44,7 +51,6 @@ export const ImportExerciseButton: React.FC<Props> = ({handleImportExercise}) =>
                 onChange={onFileChange}
                 accept="application/json"
             />
-            <button className={"theia-button main"} onClick={onButtonClick}>Import Exercise</button>
         </>
     )
 }
