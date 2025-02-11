@@ -149,7 +149,8 @@ export class ExerciserWidget extends ReactWidget {
                 backgroundColor: "var(--theia-editor-background)",
                 borderStyle: "solid",
                 borderWidth: 1,
-                borderColor: "var(--theia-dropdown-border)"
+                borderColor: "var(--theia-dropdown-border)",
+                borderRadius: 6
             }}>
                 <b style={{flexGrow: 1}}>Agents</b>
                 <button className={"theia-button"} onClick={() => handleChatRedirection("ExerciseCreator")}>Exercise Creator</button>

@@ -13,7 +13,7 @@ export const ExerciseList: React.FC<Props> = ({exercises,createExerciseFile, rem
         <div style={{
             display: "flex",
             flexDirection: "column",
-            gap: 5,
+            gap: 10,
             paddingRight: 10,
             paddingLeft: 10,
         }}>

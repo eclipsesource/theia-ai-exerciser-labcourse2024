@@ -22,12 +22,16 @@ export const ExerciseItem: React.FC<Props> = ({file, untitledResourceResolver, e
             display: "flex",
             flexDirection: "column",
             flexGrow: 1,
-            padding: 10,
+            backgroundColor: "var(--theia-editor-background)",
+            borderRadius: 6,
+            overflow: "hidden"
         }}>
             <div style={{
                 display: "flex",
                 flexDirection: "row",
                 justifyContent: "space-between",
+                alignItems: "center",
+                padding: 10,
             }}>
                 <span>{file.fileName}</span>
                 {isOpen ? (
@@ -37,7 +41,7 @@ export const ExerciseItem: React.FC<Props> = ({file, untitledResourceResolver, e
                 )}
             </div>
             {isOpen && (
-                <div className="theia-CodePartRenderer-bottom">
+                <div style={{border: "none !important"}}>
                     <CodeWrapper
                         content={file.content}
                         untitledResourceResolver={untitledResourceResolver}

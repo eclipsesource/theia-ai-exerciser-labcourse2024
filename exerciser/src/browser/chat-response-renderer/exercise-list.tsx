@@ -26,14 +26,23 @@ export const ExerciseList: React.FC<Props> = ({type, files, buttonContent, callb
         <div style={{
             display: "flex",
             flexDirection: "column",
-            gap: 5,
+            gap: 10,
             marginBottom: 5
         }}>
+            {files.map((file, index) => {
+                if (type === "conductor") {
+                    return <ExerciseItem key={file.fileName} file={file} untitledResourceResolver={untitledResourceResolver} editorProvider={editorProvider}/>
+                } else {
+                    if (isShowSolutions && index < files.length / 2)
+                        return <ExerciseItem key={file.fileName} file={file} untitledResourceResolver={untitledResourceResolver} editorProvider={editorProvider}/>
+                    if (!isShowSolutions && index >= files.length / 2)
+                        return <ExerciseItem key={file.fileName} file={file} untitledResourceResolver={untitledResourceResolver} editorProvider={editorProvider}/>
+                }
+            })}
             <div style={{
                 alignSelf: "end",
                 display: "flex",
                 flexDirection: "row",
-                gap: 5,
             }}>
                 <button
                     className={"theia-button main"}
@@ -49,16 +58,6 @@ export const ExerciseList: React.FC<Props> = ({type, files, buttonContent, callb
                     {buttonContent}
                 </button>
             </div>
-            {files.map((file, index) => {
-                if (type === "conductor") {
-                    return <ExerciseItem key={file.fileName} file={file} untitledResourceResolver={untitledResourceResolver} editorProvider={editorProvider}/>
-                } else {
-                    if (isShowSolutions && index < files.length / 2)
-                        return <ExerciseItem key={file.fileName} file={file} untitledResourceResolver={untitledResourceResolver} editorProvider={editorProvider}/>
-                    if (!isShowSolutions && index >= files.length / 2)
-                        return <ExerciseItem key={file.fileName} file={file} untitledResourceResolver={untitledResourceResolver} editorProvider={editorProvider}/>
-                }
-            })}
         </div>
     )
 }

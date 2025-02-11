@@ -27,8 +27,10 @@ export const ExerciseItem: React.FC<Props> = ({ exercise,createExerciseFile, rem
             flexDirection: "column",
             flexGrow: 1,
             borderStyle: "solid",
+            borderRadius: 6,
             borderWidth: 1,
-            borderColor: "var(--theia-dropdown-border)"
+            borderColor: "var(--theia-dropdown-border)",
+            overflow: "hidden"
         }}>
             <div style={{
                 display: "flex",
