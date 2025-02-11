@@ -8,6 +8,7 @@ import { Exercise } from '../exercise-service/types';
 import { ExerciseList } from './widget-renderer/exercise-list';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
+import { QuickFileOpenService } from '@theia/file-search/lib/browser/quick-file-open';
 import {
    AI_CHAT_NEW_CHAT_WINDOW_WITH_PINNED_AGENT_COMMAND
 } from "@theia/ai-chat-ui/lib/browser/chat-view-commands";
@@ -35,6 +36,9 @@ export class ExerciserWidget extends ReactWidget {
 
     @inject(FileService)
     protected readonly fileService: FileService;
+
+    @inject(QuickFileOpenService)
+    protected readonly quickFileOpenService: QuickFileOpenService;
 
     @inject(ChatAgentService)
     protected chatAgentService: ChatAgentService;
@@ -84,13 +88,14 @@ export class ExerciserWidget extends ReactWidget {
         exercise.conductorFiles.forEach(async (conductorFile) => {
             const fileUri = exerciseFolderUri.resolve(conductorFile.fileName);
             await this.fileService.write(fileUri, conductorFile.content);
+            this.quickFileOpenService.openFile(fileUri);
         });
     }
     async createConductorFile(exerciseId:string): Promise<void> {
         const exerise= this.exerciseService.getExercise(exerciseId);
         if(exerise){
-             await this.fileCreation(exerise);
-             this.messageService.info('Exercise files created successfully', { timeout: 3000 });
+            await this.fileCreation(exerise);
+            this.messageService.info('Exercise files created successfully', { timeout: 3000 });
         }else{
             console.error(`Exercise with ID ${exerciseId} not found.`);
         }
