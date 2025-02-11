@@ -14,7 +14,8 @@ export const ExerciseList: React.FC<Props> = ({exercises,createExerciseFile, rem
             display: "flex",
             flexDirection: "column",
             gap: 5,
-            marginBottom: 5
+            paddingRight: 10,
+            paddingLeft: 10,
         }}>
             {exercises.map(exercise => {
                 return (
@@ -27,7 +28,7 @@ export const ExerciseList: React.FC<Props> = ({exercises,createExerciseFile, rem
                 )
             })}
             {exercises.length === 0 && (
-                <p>No exercise was found...</p>
+                <span>No exercise was found...</span>
             )}
         </div>
     )
