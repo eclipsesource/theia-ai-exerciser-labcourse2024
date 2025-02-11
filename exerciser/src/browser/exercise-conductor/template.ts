@@ -149,6 +149,7 @@ export const exerciseConductorTemplate = <PromptTemplate>{
           - Never provide the lines of the comment, if the error has nothing to do with specific lines of code, just provide an empty lines array. 
        - For 'description' field in the JSON Object: 
           - explain the mistake and provide constructive suggestions and hints, and avoid providing full solutions unless explicitly requested by the user.
+       - Use the same property names and structure as in the example above, e.g. always use "errorFeedbacks" as the root property name of the JSON object.
        - Never provide other unnecessary information or unrelated content in the feedback, e.g repeat the whole current file the user provide or unrelated information, just focus on the points mentioned above.
        - If the user explicitly asks for the solution, provide only the necessary code snippets and encourage further problem-solving.
        - If there are no errors in the user's solution, respond with "Congratulations! Your solution is correct." or similar positive feedback.

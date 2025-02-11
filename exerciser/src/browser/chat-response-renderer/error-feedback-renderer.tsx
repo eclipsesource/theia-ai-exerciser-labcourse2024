@@ -98,7 +98,7 @@ export class ErrorFeedbackRenderer implements ChatResponsePartRenderer<ErrorFeed
                                 gap: 10
                             }}>
                                 <p style={{ flexGrow: 1,fontWeight:"bold", fontSize:"14px"}}>{index+1}. {item.errorTitle}</p>
-                                {item.lines?.length && <span
+                                {item.lines?.length>0 && <span
                                     className="codicon codicon-issues"
                                     title="show the problem in the editor"
                                     onClick={() => response.content.highlightLines(item.lines)}
