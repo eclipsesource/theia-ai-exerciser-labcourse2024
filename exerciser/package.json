@@ -1,0 +1,35 @@
+{
+  "name": "exerciser",
+  "keywords": [
+    "theia-extension"
+  ],
+  "version": "0.0.0",
+  "license": "MIT",
+  "files": [
+    "lib",
+    "src"
+  ],
+  "dependencies": {
+    "@theia/ai-chat": "1.55.0",
+    "@theia/ai-chat-ui": "1.55.0",
+    "@theia/ai-core": "1.55.0",
+    "@theia/ai-terminal": "1.55.0",
+    "@theia/core": "1.55.0",
+    "@theia/filesystem": "1.55.0"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.0",
+    "typescript": "~5.4.5"
+  },
+  "scripts": {
+    "prepare": "yarn run clean && yarn run build",
+    "clean": "rimraf lib",
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "theiaExtensions": [
+    {
+      "frontend": "lib/browser/exerciser-frontend-module"
+    }
+  ]
+}

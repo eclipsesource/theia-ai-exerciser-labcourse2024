@@ -1,0 +1,14 @@
+.codicon-light-bulb {
+    /* z-index: 10; Higher z-index to ensure it appears above breakpoints */
+    color: yellow !important;  /* Optional: Add a background to distinguish it */
+    font-family: Codicon;
+    font-size:  12px;
+    /* z-index: 500; */
+    cursor: pointer !important;
+    /* position: absolute; */
+    /* width: 16px  !important; */
+}
+.custom-red-background {
+    background-color: red !important;
+    opacity: 0.2; /* Optional: Adjust opacity for better readability */
+}
